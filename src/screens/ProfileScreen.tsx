@@ -13,6 +13,7 @@ import BadgesScreen from '@/screens/BadgesScreen';
 import GamesScreen from '@/screens/GamesScreen';
 import ThemesScreen from '@/screens/ThemesScreen';
 import { Coin } from '@/lib/customIcons';
+import FollowListModal from '@/components/FollowListModal';
 
 const COIN_PACKS = [
   { coins: 100, price: '₺9,99', desc: 'Başlangıç paketi' },
@@ -51,6 +52,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [followList, setFollowList] = useState<'followers' | 'following' | null>(null);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
@@ -164,6 +166,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
   }
 
   if (showBadges) return <BadgesScreen onClose={() => setShowBadges(false)} />;
+  if (followList) return <FollowListModal userId={userId} initialTab={followList} onClose={() => setFollowList(null)} onProfileClick={onProfileClick} />;
 
   if (loading) {
     return (
@@ -268,8 +271,8 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
         {!editing && (
           <div className="flex gap-6 pt-4 border-t border-slate-50">
             <div><span className="text-lg font-bold text-slate-900">{posts.length}</span><span className="text-sm text-slate-400 ml-1">gönderi</span></div>
-            <div><span className="text-lg font-bold text-slate-900">{followerCount}</span><span className="text-sm text-slate-400 ml-1">takipçi</span></div>
-            <div><span className="text-lg font-bold text-slate-900">{followingCount}</span><span className="text-sm text-slate-400 ml-1">takip</span></div>
+            <button onClick={() => setFollowList('followers')} className="text-left hover:opacity-70 transition-opacity"><span className="text-lg font-bold text-slate-900">{followerCount}</span><span className="text-sm text-slate-400 ml-1">takipçi</span></button>
+            <button onClick={() => setFollowList('following')} className="text-left hover:opacity-70 transition-opacity"><span className="text-lg font-bold text-slate-900">{followingCount}</span><span className="text-sm text-slate-400 ml-1">takip</span></button>
           </div>
         )}
 
