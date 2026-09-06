@@ -142,9 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function resetPassword(email: string) {
-    // Direct users to the hosted frontend reset page after they click the email link
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://klassosyal.vercel.app/reset-password',
+      redirectTo: `${window.location.origin}/`,
     });
     if (error) return { error: translateError(error.message) };
     return { error: null };
