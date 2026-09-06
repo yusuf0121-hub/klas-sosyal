@@ -6,6 +6,10 @@ __v0_jsx-dev-runtime.ts
 .v0-trash/
 .vercel/
 
+# The Vercel build command invokes this compatibility hook.
+!.v0/
+!.v0/inject-built-with-v0.mjs
+
 # Environment variables
 .env*.local
 
