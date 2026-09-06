@@ -10,7 +10,7 @@ type FollowListModalProps = {
   onProfileClick: (userId: string) => void;
 };
 
-type FollowRow = { follower_id: string; following_id: string; profile?: Profile | null };
+type FollowRow = { follower_id?: string; following_id?: string; profile?: Profile | Profile[] | null };
 
 export default function FollowListModal({ userId, initialTab, onClose, onProfileClick }: FollowListModalProps) {
   const [tab, setTab] = useState(initialTab);
@@ -26,7 +26,7 @@ export default function FollowListModal({ userId, initialTab, onClose, onProfile
       const relation = tab === 'followers' ? 'profile:profiles!follows_follower_id_fkey(*)' : 'profile:profiles!follows_following_id_fkey(*)';
       const { data } = await supabase.from('follows').select(`${column}, ${relation}`).eq(tab === 'followers' ? 'following_id' : 'follower_id', userId);
       if (active) {
-        setProfiles(((data ?? []) as FollowRow[]).map((row) => row.profile).filter(Boolean) as Profile[]);
+        setProfiles(((data ?? []) as unknown as FollowRow[]).map((row) => Array.isArray(row.profile) ? row.profile[0] : row.profile).filter(Boolean) as Profile[]);
         setLoading(false);
       }
     }
@@ -34,7 +34,7 @@ export default function FollowListModal({ userId, initialTab, onClose, onProfile
     return () => { active = false; };
   }, [tab, userId]);
 
-  const filtered = profiles.filter((profile) => `${profile.display_name ?? ''} ${profile.username ?? ''}`.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr')));
+  const filtered = profiles.filter((profile) => `${profile.display_name ?? ''} ${profile.email ?? ''}`.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr')));
 
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto">
@@ -59,8 +59,8 @@ export default function FollowListModal({ userId, initialTab, onClose, onProfile
         ) : (
           <div className="space-y-1">{filtered.map((profile) => (
             <button key={profile.id} onClick={() => onProfileClick(profile.id)} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted text-left transition-colors">
-              <Avatar src={profile.avatar_url} name={profile.display_name ?? profile.username ?? 'Kullanıcı'} size="md" />
-              <span className="min-w-0"><strong className="block truncate text-sm text-foreground">{profile.display_name ?? 'İsimsiz kullanıcı'}</strong><span className="block truncate text-xs text-muted-foreground">@{profile.username ?? 'kullanıcı'}</span></span>
+              <Avatar url={profile.avatar_url} id={profile.id} name={profile.display_name ?? 'Kullanıcı'} size="md" />
+              <span className="min-w-0"><strong className="block truncate text-sm text-foreground">{profile.display_name ?? 'İsimsiz kullanıcı'}</strong><span className="block truncate text-xs text-muted-foreground">{profile.email ?? 'kullanıcı'}</span></span>
             </button>
           ))}</div>
         )}

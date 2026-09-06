@@ -21,6 +21,7 @@ export default function ChatView({ conversation, onBack }: Props) {
   const [otherMembers, setOtherMembers] = useState<Profile[]>([]);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [scheduledFor, setScheduledFor] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isGroup = conversation.type === 'group';
@@ -83,15 +84,26 @@ export default function ChatView({ conversation, onBack }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  function parseSchedule(value: string) {
+    const match = value.match(/=([01]?\d|2[0-3]):([0-5]\d)=\s*$/);
+    if (!match) return { content: value.trim(), scheduled_at: null as string | null };
+    const now = new Date();
+    const scheduled = new Date(now);
+    scheduled.setHours(Number(match[1]), Number(match[2]), 0, 0);
+    if (scheduled.getTime() <= now.getTime()) scheduled.setDate(scheduled.getDate() + 1);
+    return { content: value.slice(0, match.index).trim(), scheduled_at: scheduled.toISOString() };
+  }
+
   async function send(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim() || !user) return;
     setSending(true);
-    const content = text.trim();
+    const parsed = parseSchedule(text);
+    const content = parsed.content;
     setText('');
     const { data } = await supabase
       .from('messages')
-      .insert({ conversation_id: conversation.id, sender_id: user.id, content })
+      .insert({ conversation_id: conversation.id, sender_id: user.id, content, scheduled_at: parsed.scheduled_at })
       .select('*, profile:profiles!messages_sender_id_fkey(*)')
       .single();
     if (data) {
@@ -203,12 +215,12 @@ export default function ChatView({ conversation, onBack }: Props) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 overscroll-contain">
-        {messages.length === 0 ? (
+        {messages.filter((message) => !message.scheduled_at || new Date(message.scheduled_at).getTime() <= Date.now()).length === 0 ? (
           <div className="text-center py-20">
             <p className="text-sm text-slate-400">Henüz mesaj yok. İlk mesajı sen gönder!</p>
           </div>
         ) : (
-          messages.map((m) => {
+          messages.filter((message) => !message.scheduled_at || new Date(message.scheduled_at).getTime() <= Date.now()).map((m) => {
             const mine = m.sender_id === user?.id;
             return (
               <div key={m.id} className={`flex gap-2 ${mine ? 'flex-row-reverse' : ''}`}>
@@ -255,8 +267,11 @@ export default function ChatView({ conversation, onBack }: Props) {
           <input
             type="text"
             value={text}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) return;
+            }}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Mesaj yaz..."
+            placeholder="Mesaj yaz... (ör. Merhaba =12:00=)"
             className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
           />
           <button

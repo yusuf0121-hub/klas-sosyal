@@ -19,6 +19,7 @@ import { Sparkles, Bell, X, Heart, MessageCircle, UserPlus, ArrowLeft } from 'lu
 import type { Notification } from '@/lib/supabase';
 import { timeAgo } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
+import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
 type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'admin' | null;
@@ -199,7 +200,7 @@ function MainApp() {
       );
     }
 
-    if (tab === 'home') return <HomeScreen onProfileClick={openProfile} />;
+    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} /></>;
     if (tab === 'search') return <SearchScreen onProfileClick={openProfile} />;
     return (
       <ProfileScreen
