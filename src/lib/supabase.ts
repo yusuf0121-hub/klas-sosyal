@@ -133,6 +133,8 @@ export type Message = {
   content: string | null;
   image_url: string | null;
   video_url: string | null;
+  scheduled_at?: string | null;
+  delivered_at?: string | null;
   created_at: string;
   profile?: Profile;
 };
