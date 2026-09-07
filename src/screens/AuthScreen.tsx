@@ -203,45 +203,48 @@ export default function AuthScreen() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white flex flex-col">
+    <main className="min-h-screen bg-[#f4f4f5] text-slate-950 flex flex-col">
       <header className="flex items-center justify-between px-5 py-4 sm:px-8">
-        <div className="text-xl font-black tracking-[-0.12em]">klas<span className="text-sky-400">.</span></div>
-        <button type="button" onClick={() => { setMode('signup'); setError(null); }} className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium transition hover:bg-white/10">
+        <div className="text-xl font-black tracking-[-0.12em] text-slate-950">klas<span className="text-sky-500">.</span></div>
+        <button type="button" onClick={() => { setMode('signup'); setError(null); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
           Kayıt Ol
         </button>
       </header>
 
-      <section className="flex flex-1 items-center justify-center px-5 py-12">
-        <div className="w-full max-w-[360px]">
-          <div className="mb-8 text-center">
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-3xl font-black tracking-[-0.12em] shadow-2xl shadow-sky-500/10">
-              kl<span className="text-sky-400">.</span>
+      <section className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
+        <div className="grid w-full max-w-[768px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:grid-cols-2">
+          <div className="px-8 py-10 sm:px-10">
+            <div className="mb-8 text-center">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-2xl font-black tracking-[-0.12em] text-slate-950">
+                kl<span className="text-sky-500">.</span>
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{mode === 'signup' ? "Klas'a katıl" : 'Tekrar hoş geldin'}</h1>
+              <p className="mt-2 text-sm leading-relaxed text-slate-500">{mode === 'signup' ? 'Topluluğa katıl, paylaşmaya başla.' : 'Klas Sosyal hesabınla devam et.'}</p>
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight">{mode === 'signup' ? 'Klas&apos;a katıl' : 'Tekrar hoş geldin'}</h1>
-            <p className="mt-2 text-sm leading-relaxed text-white/55">{mode === 'signup' ? 'Topluluğa katıl, paylaşmaya başla.' : 'Klas Sosyal hesabınla devam et.'}</p>
-          </div>
-
           <div className="space-y-3">
-            <button type="button" onClick={handleGoogle} disabled={busy} className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/15 bg-white/[0.03] py-3 text-sm font-medium transition hover:bg-white/[0.08] disabled:opacity-50">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            <button type="button" onClick={handleGoogle} disabled={busy} className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:opacity-50">
+              <span className="text-lg font-semibold">G</span>
               Google ile devam et
             </button>
-            <div className="flex items-center gap-3 py-2"><div className="h-px flex-1 bg-white/10"/><span className="text-xs text-white/35">veya e-posta ile</span><div className="h-px flex-1 bg-white/10"/></div>
+            <div className="flex items-center gap-3 py-2"><div className="h-px flex-1 bg-slate-200"/><span className="text-xs text-slate-400">veya e-posta ile</span><div className="h-px flex-1 bg-slate-200"/></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="İsim" className="w-full rounded-lg border border-white/15 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/35 focus:border-sky-400" />}
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-posta adresi" className="w-full rounded-lg border border-white/15 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/35 focus:border-sky-400" />
-            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Şifre" className="w-full rounded-lg border border-white/15 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/35 focus:border-sky-400" />
-            {mode === 'login' && <div className="text-right"><button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-xs text-sky-400 hover:text-sky-300">Şifremi unuttum</button></div>}
-            {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Kısa bio (isteğe bağlı)" rows={3} maxLength={160} className="w-full resize-none rounded-lg border border-white/15 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/35 focus:border-sky-400" />}
-            {error && <div className="rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-300">{error}</div>}
-            <button type="submit" disabled={busy} className="w-full rounded-lg bg-white py-3 text-sm font-semibold text-black transition hover:bg-white/85 disabled:opacity-50">{busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap Oluştur' : 'E-posta ile devam et'}</button>
+            {mode === 'signup' && <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="İsim" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" />}
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-posta adresi" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" />
+            <div><div className="mb-1.5 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium text-slate-800">Şifre</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-xs text-slate-500 hover:text-slate-900">Şifremi unuttum?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" /></div>
+            {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Kısa bio (isteğe bağlı)" rows={3} maxLength={160} className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" />}
+            {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</div>}
+            <button type="submit" disabled={busy} className="w-full rounded-lg bg-slate-950 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50">{busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap Oluştur' : 'Giriş yap'}</button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-white/45">{mode === 'login' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="font-medium text-white hover:underline">{mode === 'login' ? 'Kayıt ol' : 'Giriş yap'}</button></p>
-          <p className="mt-10 text-center text-xs leading-relaxed text-white/30">Devam ederek Kullanım Koşulları ve Gizlilik Politikası&apos;nı kabul etmiş olursun.</p>
+          <p className="mt-6 text-center text-sm text-slate-500">{mode === 'login' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="font-medium text-slate-950 underline underline-offset-2">{mode === 'login' ? 'Kayıt ol' : 'Giriş yap'}</button></p>
         </div>
+        <div className="hidden min-h-[515px] bg-slate-100 md:flex md:items-center md:justify-center">
+          <div className="relative flex h-44 w-44 items-center justify-center rounded-full border border-slate-200 text-slate-300"><div className="absolute h-px w-64 rotate-45 bg-slate-200"/><div className="absolute h-px w-64 -rotate-45 bg-slate-200"/><div className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-slate-400">✦</div></div>
+        </div>
+      </div>
+      <p className="mt-5 text-center text-xs leading-relaxed text-slate-500">Devam ederek <span className="underline">Kullanım Koşulları</span> ve <span className="underline">Gizlilik Politikası'nı</span> kabul etmiş olursun.</p>
       </section>
     </main>
   );
