@@ -81,49 +81,44 @@ export function useReels() {
   const { user } = useAuth();
   const [reels, setReels] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 12;
 
-  const loadReels = useCallback(async () => {
+  const loadReels = useCallback(async (nextPage = 0) => {
+    if (nextPage === 0) setLoading(true); else setLoadingMore(true);
+    const from = nextPage * pageSize;
     const { data } = await supabase
       .from('posts')
       .select('*, profile:profiles!posts_user_id_fkey(*)')
       .not('video_url', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .range(from, from + pageSize - 1);
 
     const postIds = (data ?? []).map((p) => p.id);
     if (postIds.length === 0) {
-      setReels([]);
-      setLoading(false);
+      setHasMore(false);
+      setLoading(false); setLoadingMore(false);
       return;
     }
-
+    setHasMore(postIds.length === pageSize);
     const [{ data: likes }, { data: myLikes }, { data: comments }] = await Promise.all([
       supabase.from('likes').select('post_id').in('post_id', postIds),
-      user
-        ? supabase.from('likes').select('post_id').in('post_id', postIds).eq('user_id', user.id)
-        : Promise.resolve({ data: [], error: null }),
+      user ? supabase.from('likes').select('post_id').in('post_id', postIds).eq('user_id', user.id) : Promise.resolve({ data: [], error: null }),
       supabase.from('comments').select('post_id').in('post_id', postIds),
     ]);
-
     const likeMap = new Map<string, number>();
     (likes ?? []).forEach((l) => likeMap.set(l.post_id, (likeMap.get(l.post_id) ?? 0) + 1));
     const myLikeSet = new Set((myLikes ?? []).map((l) => l.post_id));
     const commentMap = new Map<string, number>();
     (comments ?? []).forEach((c) => commentMap.set(c.post_id, (commentMap.get(c.post_id) ?? 0) + 1));
-
-    setReels((data ?? []).map((p) => ({
-      ...p,
-      profile: p.profile as Post['profile'],
-      like_count: likeMap.get(p.id) ?? 0,
-      comment_count: commentMap.get(p.id) ?? 0,
-      liked_by_me: myLikeSet.has(p.id),
-    })));
-    setLoading(false);
+    const enriched = (data ?? []).map((p) => ({ ...p, profile: p.profile as Post['profile'], like_count: likeMap.get(p.id) ?? 0, comment_count: commentMap.get(p.id) ?? 0, liked_by_me: myLikeSet.has(p.id) }));
+    setReels((previous) => nextPage === 0 ? enriched : [...previous, ...enriched]);
+    setPage(nextPage); setLoading(false); setLoadingMore(false);
   }, [user]);
 
-  useEffect(() => {
-    loadReels();
-  }, [loadReels]);
-
-  return { reels, loading, reload: loadReels };
+  useEffect(() => { loadReels(0); }, [loadReels]);
+  const loadMore = useCallback(() => { if (!loadingMore && hasMore) loadReels(page + 1); }, [hasMore, loadReels, loadingMore, page]);
+  return { reels, loading, loadingMore, hasMore, loadMore, reload: () => loadReels(0) };
 }

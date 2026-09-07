@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Home as HomeIcon, Film, RefreshCw } from 'lucide-react';
 import { useFeed, useReels } from '@/hooks/useFeed';
 import PostCard from '@/components/PostCard';
@@ -11,8 +11,16 @@ type FeedMode = 'all' | 'reels';
 
 export default function HomeScreen({ onProfileClick }: Props) {
   const { posts, loading, error, reload } = useFeed();
-  const { reels, loading: reelsLoading } = useReels();
+  const { reels, loading: reelsLoading, loadingMore, hasMore, loadMore } = useReels();
   const [mode, setMode] = useState<FeedMode>('all');
+  const reelsEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mode !== 'reels' || !reelsEndRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) loadMore(); }, { rootMargin: '500px' });
+    observer.observe(reelsEndRef.current);
+    return () => observer.disconnect();
+  }, [loadMore, mode, reels.length]);
 
   return (
     <div className="max-w-xl mx-auto px-4 py-6 pb-24">
@@ -67,9 +75,10 @@ export default function HomeScreen({ onProfileClick }: Props) {
             <p className="text-sm text-slate-400 mt-1">Video paylaşan ilk kişi sen ol!</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 snap-y snap-mandatory">
             {reels.map((r) => (
-              <div key={r.id} className="bg-slate-900 rounded-2xl overflow-hidden shadow-lg">
+              <div key={r.id} className="bg-slate-900 rounded-2xl overflow-hidden shadow-lg snap-start">
+
                 <div className="flex items-center gap-3 p-3">
                   <button onClick={() => onProfileClick(r.user_id)} className="shrink-0">
                     <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-emerald-400 flex items-center justify-center text-xs font-bold text-white`}>
@@ -92,6 +101,10 @@ export default function HomeScreen({ onProfileClick }: Props) {
                 </div>
               </div>
             ))}
+            <div ref={reelsEndRef} className="h-12 flex items-center justify-center" aria-live="polite">
+              {loadingMore && <span className="text-xs text-slate-400">Yeni reelsler yükleniyor...</span>}
+              {!hasMore && reels.length > 0 && <span className="text-xs text-slate-400">Şimdilik tüm reelsleri gördün.</span>}
+            </div>
           </div>
         )
       ) : loading ? (
