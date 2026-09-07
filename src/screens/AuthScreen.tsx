@@ -206,26 +206,26 @@ export default function AuthScreen() {
     <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
       <section className="w-full max-w-[319px]">
         <div className="mb-7 text-center">
-          <h1 className="text-[24px] font-bold leading-tight">Welcome back</h1>
-          <p className="mt-1 text-[16px] text-[#64748b]">Login to your Klas Sosyal account</p>
+          <h1 className="text-[24px] font-bold leading-tight">Tekrar hoş geldin</h1>
+          <p className="mt-1 text-[16px] text-[#64748b]">Klas Sosyal hesabına giriş yap</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {mode === 'signup' && <div><label className="mb-2 block text-sm font-medium">Name</label><input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>}
-          <div><label htmlFor="email" className="mb-2 block text-sm font-medium">Email</label><input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="m@example.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
-          <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium">Password</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-sm text-black hover:underline">Forgot your password?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition focus:border-[#18181b]" /></div>
+          {mode === 'signup' && <div><label className="mb-2 block text-sm font-medium">İsim</label><input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Adın" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>}
+          <div><label htmlFor="email" className="mb-2 block text-sm font-medium">E-posta</label><input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@email.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
+          <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium">Şifre</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-sm text-black hover:underline">Şifreni mi unuttun?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition focus:border-[#18181b]" /></div>
           {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Short bio (optional)" rows={3} maxLength={160} className="w-full resize-none rounded-md border border-[#dfe1e5] px-3 py-2 text-sm outline-none placeholder:text-[#64748b] focus:border-[#18181b]" />}
           {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
-          <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Login'}</button>
+          <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap oluştur' : 'Giriş yap'}</button>
         </form>
 
-        <div className="my-7 flex items-center gap-3"><div className="h-px flex-1 bg-[#dfe1e5]"/><span className="text-sm text-[#64748b]">Or continue with</span><div className="h-px flex-1 bg-[#dfe1e5]"/></div>
+        <div className="my-7 flex items-center gap-3"><div className="h-px flex-1 bg-[#dfe1e5]"/><span className="text-sm text-[#64748b]">Şununla devam et</span><div className="h-px flex-1 bg-[#dfe1e5]"/></div>
         <div className="grid grid-cols-3 gap-4">
-          <button type="button" aria-label="Apple ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-xl transition hover:bg-slate-50"></button>
-          <button type="button" onClick={handleGoogle} disabled={busy} aria-label="Google ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-xl font-semibold transition hover:bg-slate-50 disabled:opacity-50">G</button>
-          <button type="button" aria-label="Meta ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-lg font-semibold transition hover:bg-slate-50">∞</button>
+          <button type="button" aria-label="Apple ile devam et" title="Apple ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-xl transition hover:bg-slate-50"><span aria-hidden="true"></span><span className="sr-only">Apple</span></button>
+          <button type="button" onClick={handleGoogle} disabled={busy} aria-label="Google ile devam et" title="Google ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-xl font-semibold transition hover:bg-slate-50 disabled:opacity-50"><span aria-hidden="true">G</span><span className="sr-only">Google</span></button>
+          <button type="button" aria-label="Meta ile devam et" title="Meta ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-lg font-semibold transition hover:bg-slate-50"><span aria-hidden="true">∞</span><span className="sr-only">Meta</span></button>
         </div>
-        <p className="mt-7 text-center text-sm">{mode === 'login' ? "Don't have an account?" : 'Already have an account?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="underline underline-offset-2">{mode === 'login' ? 'Sign up' : 'Log in'}</button></p>
+        <p className="mt-7 text-center text-sm">{mode === 'login' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="underline underline-offset-2">{mode === 'login' ? 'Kayıt ol' : 'Giriş yap'}</button></p>
       </section>
     </main>
   );
