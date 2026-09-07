@@ -4,7 +4,7 @@ import { Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function AuthScreen() {
   const { signIn, signUp, signInWithGoogle, verifyOtp, resetPassword, pendingVerificationEmail } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup'>('signup');
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [forgotMode, setForgotMode] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -203,48 +203,29 @@ export default function AuthScreen() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f4f5] text-slate-950 flex flex-col">
-      <header className="flex items-center justify-between px-5 py-4 sm:px-8">
-        <div className="text-xl font-black tracking-[-0.12em] text-slate-950">klas<span className="text-sky-500">.</span></div>
-        <button type="button" onClick={() => { setMode('signup'); setError(null); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-          Kayıt Ol
-        </button>
-      </header>
-
-      <section className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
-        <div className="grid w-full max-w-[768px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:grid-cols-2">
-          <div className="px-8 py-10 sm:px-10">
-            <div className="mb-8 text-center">
-              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-2xl font-black tracking-[-0.12em] text-slate-950">
-                kl<span className="text-sky-500">.</span>
-              </div>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{mode === 'signup' ? "Klas'a katıl" : 'Tekrar hoş geldin'}</h1>
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">{mode === 'signup' ? 'Topluluğa katıl, paylaşmaya başla.' : 'Klas Sosyal hesabınla devam et.'}</p>
-            </div>
-          <div className="space-y-3">
-            <button type="button" onClick={handleGoogle} disabled={busy} className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50 disabled:opacity-50">
-              <span className="text-lg font-semibold">G</span>
-              Google ile devam et
-            </button>
-            <div className="flex items-center gap-3 py-2"><div className="h-px flex-1 bg-slate-200"/><span className="text-xs text-slate-400">veya e-posta ile</span><div className="h-px flex-1 bg-slate-200"/></div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="İsim" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" />}
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-posta adresi" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" />
-            <div><div className="mb-1.5 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium text-slate-800">Şifre</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-xs text-slate-500 hover:text-slate-900">Şifremi unuttum?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" /></div>
-            {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Kısa bio (isteğe bağlı)" rows={3} maxLength={160} className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500" />}
-            {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</div>}
-            <button type="submit" disabled={busy} className="w-full rounded-lg bg-slate-950 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50">{busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap Oluştur' : 'Giriş yap'}</button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-slate-500">{mode === 'login' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="font-medium text-slate-950 underline underline-offset-2">{mode === 'login' ? 'Kayıt ol' : 'Giriş yap'}</button></p>
+    <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
+      <section className="w-full max-w-[319px]">
+        <div className="mb-7 text-center">
+          <h1 className="text-[24px] font-bold leading-tight">Welcome back</h1>
+          <p className="mt-1 text-[16px] text-[#64748b]">Login to your Klas Sosyal account</p>
         </div>
-        <div className="hidden min-h-[515px] bg-slate-100 md:flex md:items-center md:justify-center">
-          <div className="relative flex h-44 w-44 items-center justify-center rounded-full border border-slate-200 text-slate-300"><div className="absolute h-px w-64 rotate-45 bg-slate-200"/><div className="absolute h-px w-64 -rotate-45 bg-slate-200"/><div className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-slate-400">✦</div></div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {mode === 'signup' && <div><label className="mb-2 block text-sm font-medium">Name</label><input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>}
+          <div><label htmlFor="email" className="mb-2 block text-sm font-medium">Email</label><input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="m@example.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
+          <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium">Password</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-sm text-black hover:underline">Forgot your password?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition focus:border-[#18181b]" /></div>
+          {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Short bio (optional)" rows={3} maxLength={160} className="w-full resize-none rounded-md border border-[#dfe1e5] px-3 py-2 text-sm outline-none placeholder:text-[#64748b] focus:border-[#18181b]" />}
+          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
+          <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Login'}</button>
+        </form>
+
+        <div className="my-7 flex items-center gap-3"><div className="h-px flex-1 bg-[#dfe1e5]"/><span className="text-sm text-[#64748b]">Or continue with</span><div className="h-px flex-1 bg-[#dfe1e5]"/></div>
+        <div className="grid grid-cols-3 gap-4">
+          <button type="button" aria-label="Apple ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-xl transition hover:bg-slate-50"></button>
+          <button type="button" onClick={handleGoogle} disabled={busy} aria-label="Google ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-xl font-semibold transition hover:bg-slate-50 disabled:opacity-50">G</button>
+          <button type="button" aria-label="Meta ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] text-lg font-semibold transition hover:bg-slate-50">∞</button>
         </div>
-      </div>
-      <p className="mt-5 text-center text-xs leading-relaxed text-slate-500">Devam ederek <span className="underline">Kullanım Koşulları</span> ve <span className="underline">Gizlilik Politikası'nı</span> kabul etmiş olursun.</p>
+        <p className="mt-7 text-center text-sm">{mode === 'login' ? "Don't have an account?" : 'Already have an account?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="underline underline-offset-2">{mode === 'login' ? 'Sign up' : 'Log in'}</button></p>
       </section>
     </main>
   );
