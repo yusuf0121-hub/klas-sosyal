@@ -10,6 +10,7 @@ type AuthContextValue = {
   signUp: (email: string, password: string, displayName: string, bio?: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
+  signInWithFacebook: () => Promise<{ error: string | null }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
   pendingVerificationEmail: string | null;
   signOut: () => Promise<void>;
@@ -118,12 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signInWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+    if (error) return { error: translateError(error.message) };
+    return { error: null };
+  }
+
+  async function signInWithFacebook() {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'facebook', options: { redirectTo: window.location.origin } });
     if (error) return { error: translateError(error.message) };
     return { error: null };
   }
@@ -161,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, profile, loading, signUp, signIn, signInWithGoogle, verifyOtp, pendingVerificationEmail, signOut, refreshProfile, resetPassword, updatePassword }}
+      value={{ session, user: session?.user ?? null, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, verifyOtp, pendingVerificationEmail, signOut, refreshProfile, resetPassword, updatePassword }}
     >
       {children}
     </AuthContext.Provider>
