@@ -47,7 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        window.dispatchEvent(new Event('klas-password-recovery'));
+      }
       setSession(newSession);
       if (newSession?.user) {
         (async () => {
@@ -150,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function resetPassword(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/`,
+      redirectTo: `${window.location.origin}/#type=recovery`,
     });
     if (error) return { error: translateError(error.message) };
     return { error: null };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
 
@@ -18,6 +18,13 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const activateRecovery = () => setRecoveryMode(true);
+    if (window.location.hash.includes('type=recovery')) activateRecovery();
+    window.addEventListener('klas-password-recovery', activateRecovery);
+    return () => window.removeEventListener('klas-password-recovery', activateRecovery);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
