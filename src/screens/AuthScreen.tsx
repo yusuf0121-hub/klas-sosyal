@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { Sparkles, Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function AuthScreen() {
-  const { signIn, signUp, signInWithGoogle, verifyOtp, resetPassword, pendingVerificationEmail } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup'>('signup');
+  const { signIn, signUp, signInWithGoogle, signInWithFacebook, verifyOtp, resetPassword, updatePassword, pendingVerificationEmail } = useAuth();
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [forgotMode, setForgotMode] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -13,8 +13,18 @@ export default function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const activateRecovery = () => setRecoveryMode(true);
+    if (window.location.hash.includes('type=recovery')) activateRecovery();
+    window.addEventListener('klas-password-recovery', activateRecovery);
+    return () => window.removeEventListener('klas-password-recovery', activateRecovery);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,17 +70,48 @@ export default function AuthScreen() {
     setBusy(false);
   }
 
+  async function handleFacebook() {
+    setError(null);
+    setBusy(true);
+    const { error: err } = await signInWithFacebook();
+    if (err) setError(err);
+    setBusy(false);
+  }
+
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setBusy(true);
     const { error: err } = await resetPassword(email);
-    if (err) {
-      setError(err);
-    } else {
-      setResetSent(true);
-    }
+    if (err) setError(err); else setResetSent(true);
     setBusy(false);
+  }
+
+  async function handlePasswordUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (newPassword.length < 6) { setError('Şifre en az 6 karakter olmalı.'); return; }
+    if (newPassword !== confirmPassword) { setError('Şifreler eşleşmiyor.'); return; }
+    setBusy(true);
+    const { error: err } = await updatePassword(newPassword);
+    if (err) setError(err); else { setRecoveryMode(false); setForgotMode(false); setNewPassword(''); setConfirmPassword(''); setError(null); }
+    setBusy(false);
+  }
+
+  if (recoveryMode) {
+    return (
+      <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
+        <section className="w-full max-w-[319px]">
+          <div className="mb-7 text-center"><h1 className="text-[24px] font-bold leading-tight">Yeni şifre oluştur</h1><p className="mt-1 text-[16px] text-[#64748b]">Klas Sosyal hesabın için güvenli bir şifre belirle</p></div>
+          <form onSubmit={handlePasswordUpdate} className="space-y-6">
+            <div><label htmlFor="new-password" className="mb-2 block text-sm font-medium">Yeni şifre</label><input id="new-password" type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none focus:border-[#18181b]" /></div>
+            <div><label htmlFor="confirm-password" className="mb-2 block text-sm font-medium">Yeni şifreyi tekrar yaz</label><input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none focus:border-[#18181b]" /></div>
+            {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
+            <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Kaydediliyor...' : 'Şifremi güncelle'}</button>
+          </form>
+        </section>
+      </main>
+    );
   }
 
   if (otpEmail || pendingVerificationEmail) {
@@ -133,224 +174,58 @@ export default function AuthScreen() {
 
   if (forgotMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-400 to-emerald-400 shadow-lg shadow-sky-500/20 mb-4">
-              <Mail className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Şifremi Unuttum</h1>
-            <p className="text-slate-400 mt-2 text-sm">E-posta adresine sıfırlama bağlantısı gönderelim.</p>
+      <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
+        <section className="w-full max-w-[319px]">
+          <div className="mb-7 text-center">
+            <h1 className="text-[24px] font-bold leading-tight">Şifreni sıfırla</h1>
+            <p className="mt-1 text-[16px] text-[#64748b]">Klas Sosyal hesabın için yeni bir şifre oluştur</p>
           </div>
-
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
-            {resetSent ? (
-              <div className="text-center py-6">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-7 h-7 text-emerald-400" />
-                </div>
-                <p className="text-white font-medium text-sm mb-2">Bağlantı gönderildi!</p>
-                <p className="text-slate-400 text-xs mb-6">E-postanı kontrol et ve şifreni sıfırla.</p>
-                <button
-                  onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); }}
-                  className="w-full py-3 bg-gradient-to-r from-sky-400 to-emerald-400 text-white font-semibold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  Girişe Dön
-                </button>
+          {resetSent ? (
+            <div className="text-center">
+              <div className="rounded-md border border-[#dfe1e5] bg-white px-5 py-6">
+                <Mail className="mx-auto mb-4 h-7 w-7 text-[#64748b]" aria-hidden="true" />
+                <p className="text-sm font-medium">E-posta gönderildi</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{email} adresine bir şifre sıfırlama bağlantısı gönderdik. E-postadaki bağlantıya dokunarak Klas Sosyal&apos;de yeni şifreni belirleyebilirsin.</p>
               </div>
-            ) : (
-              <>
-                <form onSubmit={handleReset} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">E-posta</label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ornek@email.com"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3 text-sm text-rose-300">
-                      {error}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="w-full py-3.5 bg-gradient-to-r from-sky-400 to-emerald-400 text-white font-semibold rounded-xl shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
-                  >
-                    {busy ? 'Gönderiliyor...' : 'Sıfırlama Bağlantısı Gönder'}
-                  </button>
-                </form>
-
-                <button
-                  onClick={() => { setForgotMode(false); setError(null); setEmail(''); }}
-                  className="w-full mt-4 text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  Giriş ekranına dön
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+              <button type="button" onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); }} className="mt-6 text-sm underline underline-offset-2">Giriş ekranına dön</button>
+            </div>
+          ) : (
+            <form onSubmit={handleReset} className="space-y-6">
+              <div><label htmlFor="reset-email" className="mb-2 block text-sm font-medium">E-posta</label><input id="reset-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@email.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
+              {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
+              <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Gönderiliyor...' : 'Şifre sıfırlama kodu gönder'}</button>
+              <button type="button" onClick={() => { setForgotMode(false); setError(null); setEmail(''); }} className="w-full text-sm underline underline-offset-2">Giriş ekranına dön</button>
+            </form>
+          )}
+        </section>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo / Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-400 to-emerald-400 shadow-lg shadow-sky-500/20 mb-4">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Klas Sosyal</h1>
-          <p className="text-slate-400 mt-2 text-sm">
-            {mode === 'signup' ? 'Aramıza katıl, sohbete başla.' : 'Tekrar hoş geldin.'}
-          </p>
+    <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
+      <section className="w-full max-w-[319px]">
+        <div className="mb-7 text-center">
+          <h1 className="text-[24px] font-bold leading-tight">Tekrar hoş geldin</h1>
+          <p className="mt-1 text-[16px] text-[#64748b]">Klas Sosyal hesabına giriş yap</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
-          {/* Mode toggle */}
-          <div className="flex gap-2 p-1 bg-white/5 rounded-xl mb-6">
-            <button
-              type="button"
-              onClick={() => { setMode('login'); setError(null); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                mode === 'login' ? 'bg-white text-slate-900 shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Giriş Yap
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMode('signup'); setError(null); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                mode === 'signup' ? 'bg-white text-slate-900 shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Kayıt Ol
-            </button>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {mode === 'signup' && <div><label className="mb-2 block text-sm font-medium">İsim</label><input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Adın" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>}
+          <div><label htmlFor="email" className="mb-2 block text-sm font-medium">E-posta</label><input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@email.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
+          <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium">Şifre</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-sm text-black hover:underline">Şifreni mi unuttun?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition focus:border-[#18181b]" /></div>
+          {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Short bio (optional)" rows={3} maxLength={160} className="w-full resize-none rounded-md border border-[#dfe1e5] px-3 py-2 text-sm outline-none placeholder:text-[#64748b] focus:border-[#18181b]" />}
+          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
+          <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap oluştur' : 'Giriş yap'}</button>
+        </form>
 
-          {/* Google OAuth */}
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={busy}
-            className="w-full flex items-center justify-center gap-3 py-3 bg-white text-slate-700 font-medium rounded-xl shadow-sm hover:bg-slate-50 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 mb-4"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Google ile {mode === 'signup' ? 'Kayıt Ol' : 'Giriş Yap'}
-          </button>
-
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-slate-500">veya</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">İsim</label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Adınızı girin"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">E-posta</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ornek@email.com"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Şifre</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
-              />
-            </div>
-
-            {mode === 'login' && (
-              <div className="text-right">
-                <button
-                  type="button"
-                  onClick={() => { setForgotMode(true); setError(null); }}
-                  className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
-                >
-                  Şifremi unuttum
-                </button>
-              </div>
-            )}
-
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Bio <span className="text-slate-600">(isteğe bağlı)</span>
-                </label>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Kendinizden kısaca bahsedin..."
-                  rows={3}
-                  maxLength={160}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all resize-none"
-                />
-                <p className="text-right text-xs text-slate-600 mt-1">{bio.length}/160</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3 text-sm text-rose-300">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full py-3.5 bg-gradient-to-r from-sky-400 to-emerald-400 text-white font-semibold rounded-xl shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:hover:scale-100"
-            >
-              {busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap Oluştur' : 'Giriş Yap'}
-            </button>
-          </form>
-
-          {mode === 'signup' && (
-            <p className="text-xs text-slate-500 mt-4 text-center">
-              Kayıt olduğunuzda e-postanıza 6 haneli doğrulama kodu gönderilecektir.
-            </p>
-          )}
+        <div className="my-7 flex items-center gap-3"><div className="h-px flex-1 bg-[#dfe1e5]"/><span className="text-sm text-[#64748b]">Şununla devam et</span><div className="h-px flex-1 bg-[#dfe1e5]"/></div>
+        <div className="grid grid-cols-2 gap-4">
+          <button type="button" onClick={handleGoogle} disabled={busy} aria-label="Google ile devam et" title="Google ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] transition hover:bg-slate-50 disabled:opacity-50"><svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.74-.07-1.45-.21-2.13H12v4.03h5.23a4.47 4.47 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.92-4.18 2.92-7.29Z"/><path fill="#34A853" d="M12 21.8c2.64 0 4.86-.87 6.48-2.36l-3.14-2.45c-.87.58-1.98.93-3.34.93-2.56 0-4.73-1.73-5.51-4.06H3.25v2.53A9.8 9.8 0 0 0 12 21.8Z"/><path fill="#FBBC05" d="M6.49 13.86a5.9 5.9 0 0 1 0-3.72V7.61H3.25a9.8 9.8 0 0 0 0 8.78l3.24-2.53Z"/><path fill="#EA4335" d="M12 6.08c1.44 0 2.73.5 3.75 1.48l2.81-2.81C16.86 3.13 14.64 2.2 12 2.2a9.8 9.8 0 0 0-8.75 5.41l3.24 2.53C7.27 7.81 9.44 6.08 12 6.08Z"/></svg><span className="sr-only">Google</span></button>
+          <button type="button" onClick={handleFacebook} disabled={busy} aria-label="Facebook ile devam et" title="Facebook ile devam et" className="flex h-10 items-center justify-center rounded-md border border-[#dfe1e5] transition hover:bg-slate-50 disabled:opacity-50"><svg viewBox="0 0 32 18" className="h-5 w-7 fill-black" aria-hidden="true"><path d="M4.3 13.2C2.2 13.2 1 11.9 1 9.9c0-3.2 2.6-5.8 5.8-5.8 2 0 3.6.9 5.2 2.7l.8.9.8-.9c1.6-1.8 3.2-2.7 5.2-2.7 3.2 0 5.8 2.6 5.8 5.8 0 2-1.2 3.3-3.3 3.3-1.8 0-3.4-1.1-4.8-3.2l-3.7-5.2-3.7 5.2c-1.4 2.1-3 3.2-4.8 3.2Zm2.5-6.3c-1.8 0-3.2 1.4-3.2 3 0 .8.3 1.5.8 1.5.7 0 1.7-.8 2.8-2.4l1.5-2.1H6.8Zm12.2 0h-1.9l1.5 2.1c1.1 1.6 2.1 2.4 2.8 2.4.5 0 .8-.7.8-1.5 0-1.6-1.4-3-3.2-3Z"/></svg><span className="sr-only">Meta</span></button>
         </div>
-      </div>
-    </div>
+        <p className="mt-7 text-center text-sm">{mode === 'login' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }} className="underline underline-offset-2">{mode === 'login' ? 'Kayıt ol' : 'Giriş yap'}</button></p>
+      </section>
+    </main>
   );
 }

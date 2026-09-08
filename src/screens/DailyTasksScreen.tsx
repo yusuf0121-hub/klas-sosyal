@@ -80,6 +80,16 @@ export default function DailyTasksScreen({ onClose }: Props) {
         )}
 
         {/* Progress summary */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 p-4">
+            <p className="text-xs text-slate-400">Tamamlanan</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{completedCount}<span className="text-sm text-slate-400">/{tasks.length}</span></p>
+          </div>
+          <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4">
+            <p className="text-xs text-amber-600">Bugünün ödülü</p>
+            <p className="text-2xl font-bold text-amber-700 mt-1">{totalReward}<span className="text-sm font-medium ml-1">Coin</span></p>
+          </div>
+        </div>
         <div className="bg-white rounded-2xl border border-slate-100 p-4 mb-4">
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-sky-500" />
@@ -102,6 +112,10 @@ export default function DailyTasksScreen({ onClose }: Props) {
           </div>
         ) : (
           <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-sm font-semibold text-slate-700">Bugünün görevleri</h2>
+              <span className="text-xs text-slate-400">Sıfırlanma: 00:00</span>
+            </div>
             {tasks.map((task) => {
               const isCompleted = task.completed;
               const canClaim = task.completed;
