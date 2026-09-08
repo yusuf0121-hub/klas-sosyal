@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/auth';
 import { Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function AuthScreen() {
-  const { signIn, signUp, signInWithGoogle, verifyOtp, resetPassword, pendingVerificationEmail } = useAuth();
+  const { signIn, signUp, signInWithGoogle, verifyOtp, resetPassword, updatePassword, pendingVerificationEmail } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [forgotMode, setForgotMode] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -13,6 +13,9 @@ export default function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
 
@@ -65,12 +68,35 @@ export default function AuthScreen() {
     setError(null);
     setBusy(true);
     const { error: err } = await resetPassword(email);
-    if (err) {
-      setError(err);
-    } else {
-      setResetSent(true);
-    }
+    if (err) setError(err); else setResetSent(true);
     setBusy(false);
+  }
+
+  async function handlePasswordUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (newPassword.length < 6) { setError('Şifre en az 6 karakter olmalı.'); return; }
+    if (newPassword !== confirmPassword) { setError('Şifreler eşleşmiyor.'); return; }
+    setBusy(true);
+    const { error: err } = await updatePassword(newPassword);
+    if (err) setError(err); else { setRecoveryMode(false); setForgotMode(false); setNewPassword(''); setConfirmPassword(''); setError(null); }
+    setBusy(false);
+  }
+
+  if (recoveryMode) {
+    return (
+      <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
+        <section className="w-full max-w-[319px]">
+          <div className="mb-7 text-center"><h1 className="text-[24px] font-bold leading-tight">Yeni şifre oluştur</h1><p className="mt-1 text-[16px] text-[#64748b]">Klas Sosyal hesabın için güvenli bir şifre belirle</p></div>
+          <form onSubmit={handlePasswordUpdate} className="space-y-6">
+            <div><label htmlFor="new-password" className="mb-2 block text-sm font-medium">Yeni şifre</label><input id="new-password" type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none focus:border-[#18181b]" /></div>
+            <div><label htmlFor="confirm-password" className="mb-2 block text-sm font-medium">Yeni şifreyi tekrar yaz</label><input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none focus:border-[#18181b]" /></div>
+            {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
+            <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Kaydediliyor...' : 'Şifremi güncelle'}</button>
+          </form>
+        </section>
+      </main>
+    );
   }
 
   if (otpEmail || pendingVerificationEmail) {
@@ -133,72 +159,31 @@ export default function AuthScreen() {
 
   if (forgotMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-400 to-emerald-400 shadow-lg shadow-sky-500/20 mb-4">
-              <Mail className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Şifremi Unuttum</h1>
-            <p className="text-slate-400 mt-2 text-sm">E-posta adresine sıfırlama bağlantısı gönderelim.</p>
+      <main className="min-h-screen bg-white text-black flex items-center justify-center px-8 py-10">
+        <section className="w-full max-w-[319px]">
+          <div className="mb-7 text-center">
+            <h1 className="text-[24px] font-bold leading-tight">Şifreni sıfırla</h1>
+            <p className="mt-1 text-[16px] text-[#64748b]">Klas Sosyal hesabın için yeni bir şifre oluştur</p>
           </div>
-
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
-            {resetSent ? (
-              <div className="text-center py-6">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-7 h-7 text-emerald-400" />
-                </div>
-                <p className="text-white font-medium text-sm mb-2">Bağlantı gönderildi!</p>
-                <p className="text-slate-400 text-xs mb-6">E-postanı kontrol et ve şifreni sıfırla.</p>
-                <button
-                  onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); }}
-                  className="w-full py-3 bg-gradient-to-r from-sky-400 to-emerald-400 text-white font-semibold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  Girişe Dön
-                </button>
+          {resetSent ? (
+            <div className="text-center">
+              <div className="rounded-md border border-[#dfe1e5] bg-white px-5 py-6">
+                <Mail className="mx-auto mb-4 h-7 w-7 text-[#64748b]" aria-hidden="true" />
+                <p className="text-sm font-medium">E-posta gönderildi</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{email} adresine bir şifre sıfırlama bağlantısı gönderdik. E-postadaki bağlantıya dokunarak Klas Sosyal&apos;de yeni şifreni belirleyebilirsin.</p>
               </div>
-            ) : (
-              <>
-                <form onSubmit={handleReset} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">E-posta</label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ornek@email.com"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3 text-sm text-rose-300">
-                      {error}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="w-full py-3.5 bg-gradient-to-r from-sky-400 to-emerald-400 text-white font-semibold rounded-xl shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
-                  >
-                    {busy ? 'Gönderiliyor...' : 'Sıfırlama Bağlantısı Gönder'}
-                  </button>
-                </form>
-
-                <button
-                  onClick={() => { setForgotMode(false); setError(null); setEmail(''); }}
-                  className="w-full mt-4 text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  Giriş ekranına dön
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+              <button type="button" onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); }} className="mt-6 text-sm underline underline-offset-2">Giriş ekranına dön</button>
+            </div>
+          ) : (
+            <form onSubmit={handleReset} className="space-y-6">
+              <div><label htmlFor="reset-email" className="mb-2 block text-sm font-medium">E-posta</label><input id="reset-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@email.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
+              {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
+              <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Gönderiliyor...' : 'Şifre sıfırlama kodu gönder'}</button>
+              <button type="button" onClick={() => { setForgotMode(false); setError(null); setEmail(''); }} className="w-full text-sm underline underline-offset-2">Giriş ekranına dön</button>
+            </form>
+          )}
+        </section>
+      </main>
     );
   }
 
