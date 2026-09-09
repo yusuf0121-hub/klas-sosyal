@@ -13,7 +13,6 @@ import AdminScreen from '@/screens/AdminScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
 import BottomNav, { type Tab } from '@/components/BottomNav';
 import AppHeader from '@/components/AppHeader';
-import CreateFab from '@/components/CreateFab';
 import { ThemeProvider, useTheme } from '@/lib/ThemeProvider';
 import { Sparkles, Bell, X, Heart, MessageCircle, UserPlus, ArrowLeft } from 'lucide-react';
 import type { Notification } from '@/lib/supabase';
@@ -273,7 +272,6 @@ function MainApp() {
 
       {renderContent()}
 
-      {showChrome && overlay !== 'create' && <CreateFab onClick={() => openOverlay('create')} />}
       {showChrome && <BottomNav active={tab} onChange={handleTabChange} />}
     </div>
   );
