@@ -32,6 +32,8 @@ export default function SearchScreen({ onProfileClick }: Props) {
   }, [user?.id]);
 
   useEffect(() => {
+    const normalized = query.trim().toLowerCase();
+    window.dispatchEvent(new CustomEvent('klas-easter-egg', { detail: normalized === 'matrix' }));
     const q = query.trim();
     if (q.length < 1) {
       setUserResults([]);

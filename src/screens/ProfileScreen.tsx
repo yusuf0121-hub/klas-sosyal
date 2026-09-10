@@ -14,6 +14,7 @@ import GamesScreen from '@/screens/GamesScreen';
 import ThemesScreen from '@/screens/ThemesScreen';
 import { Coin } from '@/lib/customIcons';
 import FollowListModal from '@/components/FollowListModal';
+import PixelPet from '@/components/PixelPet';
 
 const COIN_PACKS = [
   { coins: 100, price: '₺9,99', desc: 'Başlangıç paketi' },
@@ -200,6 +201,8 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
         )}
         <h1 className="text-xl font-bold text-slate-900">Profil</h1>
       </div>
+
+      {isOwn && <PixelPet />}
 
       {/* Banner */}
       <div className="relative h-32 bg-gradient-to-br from-sky-400 via-emerald-400 to-teal-400 rounded-2xl mb-0 overflow-hidden">

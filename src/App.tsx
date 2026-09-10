@@ -33,6 +33,7 @@ const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
 
 function MainApp() {
   const { user, profile, loading } = useAuth();
+  const [matrixMode, setMatrixMode] = useState(false);
   const { isDark, textColor, cardBg, cardBorder, subtextColor } = useTheme();
   const { checkAndAward } = useBadgeChecker();
 
@@ -48,6 +49,12 @@ function MainApp() {
   useEffect(() => {
     if (user) checkAndAward();
   }, [user, checkAndAward]);
+
+  useEffect(() => {
+    const onEgg = (event: Event) => setMatrixMode((event as CustomEvent<boolean>).detail);
+    window.addEventListener('klas-easter-egg', onEgg);
+    return () => window.removeEventListener('klas-easter-egg', onEgg);
+  }, []);
 
   useEffect(() => {
     if (user && profile) {
@@ -213,7 +220,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className={`min-h-screen ${matrixMode ? 'matrix-mode' : ''}`}>
       {showChrome && (
         <AppHeader
           unreadMessages={unreadMessages}

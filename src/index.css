@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+.matrix-mode { background: #031b0b; filter: hue-rotate(75deg) saturate(1.35); }
+.matrix-mode * { text-shadow: 0 0 5px rgba(34, 197, 94, 0.35); }
+
 :root {
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
