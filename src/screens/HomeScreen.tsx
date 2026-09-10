@@ -3,6 +3,8 @@ import { Home as HomeIcon, Film, RefreshCw } from 'lucide-react';
 import { useFeed, useReels } from '@/hooks/useFeed';
 import PostCard from '@/components/PostCard';
 import StoriesBar from '@/components/StoriesBar';
+import CommunityLeaderboard from '@/components/CommunityLeaderboard';
+import CommunityRules from '@/components/CommunityRules';
 
 type Props = {
   onProfileClick: (userId: string) => void;
@@ -39,6 +41,8 @@ export default function HomeScreen({ onProfileClick }: Props) {
       </div>
 
       <StoriesBar onProfileClick={onProfileClick} />
+      <CommunityLeaderboard />
+      <CommunityRules />
 
       {/* Feed mode toggle */}
       <div className="flex gap-2 p-1 bg-white border border-slate-100 rounded-xl mb-5 shadow-sm">
