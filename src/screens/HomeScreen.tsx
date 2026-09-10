@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Home as HomeIcon, Film, RefreshCw } from 'lucide-react';
 import { useFeed, useReels } from '@/hooks/useFeed';
 import PostCard from '@/components/PostCard';
+import StoriesBar from '@/components/StoriesBar';
 
 type Props = {
   onProfileClick: (userId: string) => void;
@@ -36,6 +37,8 @@ export default function HomeScreen({ onProfileClick }: Props) {
           <RefreshCw className="w-5 h-5" />
         </button>
       </div>
+
+      <StoriesBar onProfileClick={onProfileClick} />
 
       {/* Feed mode toggle */}
       <div className="flex gap-2 p-1 bg-white border border-slate-100 rounded-xl mb-5 shadow-sm">
