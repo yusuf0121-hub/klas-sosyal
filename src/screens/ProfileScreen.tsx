@@ -212,7 +212,9 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       {/* Profile header */}
       <div className="bg-white rounded-b-2xl border border-slate-100 border-t-0 shadow-sm px-6 pt-0 pb-6 relative">
         <div className="-mt-12 mb-4 relative inline-block">
-          <Avatar name={profile.display_name} id={profile.id} url={profile.avatar_url} size="xl" />
+          <div className="profile-cat-avatar" role="img" aria-label={`${profile.display_name} profil kedisi`}>
+            <div className="profile-cat-avatar-sprite" />
+          </div>
           {isOwn && (
             <button
               onClick={() => fileInputRef.current?.click()}
