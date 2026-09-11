@@ -12,6 +12,24 @@
 .cat-sprite:hover { filter: brightness(1.08); }
 .cat-bounce { animation: cat-idle 1.1s steps(12) infinite, cat-bounce 320ms ease-out; }
 .cat-heart { position: absolute; bottom: 45%; z-index: 2; color: #f97316; font-size: 18px; pointer-events: none; animation: heart-float 900ms ease-out forwards; }
+.cat-sad { filter: grayscale(.7) saturate(.65) brightness(.9); opacity: .78; }
+.cat-color-cream .cat-sprite { filter: sepia(.35) saturate(.7) brightness(1.08); }
+.cat-color-gray .cat-sprite { filter: grayscale(.75) brightness(1.05); }
+.cat-color-black .cat-sprite { filter: brightness(.55) contrast(1.15); }
+.cat-habitat-cardboard-box { background: #ffedd5; }
+.cat-habitat-wooden-crate { background: repeating-linear-gradient(0deg, #92400e 0 5px, #b45309 5px 9px); }
+.cat-habitat-gift-box { background: #fecaca; }
+.cat-habitat-cat-tent { background: #e9d5ff; }
+.cat-habitat-mushroom-house { background: #fecaca; }
+.cat-habitat-crystal-cave { background: #e9d5ff; box-shadow: inset 0 0 22px #c084fc; }
+.cat-habitat-mark { position: absolute; inset: 8px; border: 2px dashed rgba(120, 53, 15, .28); border-radius: 10px; pointer-events: none; }
+.cat-outfit { position: absolute; top: 12px; z-index: 3; width: 32px; height: 10px; border-radius: 7px 7px 2px 2px; pointer-events: none; }
+.cat-outfit-detective-cap { background: #8b5e3c; transform: rotate(-8deg); }
+.cat-outfit-crown { background: #f5b700; clip-path: polygon(0 100%, 10% 0, 35% 55%, 55% 0, 75% 55%, 100% 0, 100% 100%); }
+.cat-outfit-pirate-hat { background: #242424; }
+.cat-outfit-heart-glasses { top: 42%; width: 28px; height: 9px; background: #f97316; }
+.cat-outfit-scarf { top: 67%; width: 30px; height: 7px; background: #dc2626; }
+.cat-outfit-angel-wings { top: 48%; width: 42px; height: 20px; background: #f8fafc; border-radius: 50%; }
 @keyframes cat-idle { from { background-position: 0 0; } to { background-position: -528px 0; } }
 @keyframes cat-bounce { 50% { transform: translateY(-9px) scale(1.08); } }
 @keyframes heart-float { from { opacity: 0; transform: translateY(8px) scale(.7); } 20% { opacity: 1; } to { opacity: 0; transform: translateY(-42px) scale(1.1); } }
