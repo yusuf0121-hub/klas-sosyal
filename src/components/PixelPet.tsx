@@ -54,13 +54,22 @@ export default function PixelPet() {
         if (hunger !== next.hunger) await supabase.from('pixel_pets').update({ hunger }).eq('user_id', user.id);
       }
       if (active) setLoading(false);
+    }, () => {
+      if (active) {
+        setPet(defaultPet);
+        setDraftName(defaultPet.name);
+        setLoading(false);
+      }
     });
     return () => { active = false; };
   }, [user]);
 
   const savePet = async (patch: Partial<Pet>) => {
     setPet((current) => ({ ...current, ...patch }));
-    if (user) await supabase.from('pixel_pets').update(patch).eq('user_id', user.id);
+    if (user) {
+      const { error } = await supabase.from('pixel_pets').update(patch).eq('user_id', user.id);
+      if (error) console.warn('[v0] Pet update skipped:', error.message);
+    }
   };
 
   const giveAffection = async () => {
@@ -71,7 +80,10 @@ export default function PixelPet() {
     setHearts((current) => [...current, { id: Date.now(), left: 25 + Math.random() * 50 }]);
     window.setTimeout(() => setBouncing(false), 320);
     window.setTimeout(() => setHearts((current) => current.slice(1)), 900);
-    if (user) await supabase.from('pixel_pets').update(next).eq('user_id', user.id);
+    if (user) {
+      const { error } = await supabase.from('pixel_pets').update(next).eq('user_id', user.id);
+      if (error) console.warn('[v0] Pet affection sync skipped:', error.message);
+    }
   };
 
   const saveSettings = async () => {
