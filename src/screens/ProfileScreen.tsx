@@ -202,16 +202,15 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       </div>
 
       {/* Banner */}
-      <div className="relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-cyan-400 via-emerald-400 to-teal-400">
+      <div className="profile-banner relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-cyan-400 via-emerald-400 to-teal-400">
         {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
+        <div className="profile-banner-cat" role="img" aria-label="Piksel kedi" />
       </div>
 
       {/* Profile header */}
       <div className="relative z-10 rounded-b-2xl border border-slate-100 border-t-0 bg-white px-6 pb-6 pt-0 shadow-sm">
         <div className="relative z-20 -mt-12 mb-4 inline-block">
-          <div className="profile-cat-avatar" role="img" aria-label={`${profile.display_name} profil kedisi`}>
-            <div className="profile-cat-avatar-sprite" />
-          </div>
+          <Avatar name={profile.display_name} id={profile.id} url={profile.avatar_url} size="xl" />
           {isOwn && (
             <button
               onClick={() => fileInputRef.current?.click()}
