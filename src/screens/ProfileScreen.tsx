@@ -229,7 +229,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       {/* Banner */}
       <div ref={bannerRef} className="profile-banner relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-cyan-400 via-emerald-400 to-teal-400" onPointerMove={(event) => draggingCat && moveCat(event)} onPointerUp={finishCatDrag} onPointerLeave={finishCatDrag}>
         {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
-        <div className="profile-banner-cat" role="img" aria-label={`${CAT_TYPES[catType]} piksel kedi`} style={{ left: `${catPosition.x}%`, top: `${catPosition.y}%`, backgroundPosition: `-${catType * 100}px -390px` }} onPointerDown={(event) => { if (!isOwn) return; event.currentTarget.setPointerCapture(event.pointerId); setDraggingCat(true); moveCat(event); }} />
+        <div className="profile-banner-cat" role="img" aria-label={`${CAT_TYPES[catType]} piksel kedi`} style={{ left: `${catPosition.x}%`, top: `${catPosition.y}%`, backgroundPosition: `-${catType * 56}px 0` }} onPointerDown={(event) => { if (!isOwn) return; event.currentTarget.setPointerCapture(event.pointerId); setDraggingCat(true); moveCat(event); }} />
       </div>
 
       {/* Profile header */}
