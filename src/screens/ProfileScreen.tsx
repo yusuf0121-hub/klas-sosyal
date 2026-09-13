@@ -35,7 +35,7 @@ const PROFILE_TABS: { id: ProfileTab; label: string; icon: typeof Grid3x3 }[] = 
   { id: 'themes', label: 'Temalar', icon: Palette },
 ];
 
-type BannerCatSettings = { banner_cat_type?: number; banner_cat_x?: number; banner_cat_y?: number };
+type BannerCatSettings = { banner_cat_type?: number; banner_cat_x?: number; banner_cat_y?: number; banner_cat_background?: number };
 
 const CAT_TYPES = ['Turuncu', 'Siyam', 'Gece', 'Van', 'Smokin', 'Gri', 'Tekir', 'Çizgili', 'Klasik'];
 
@@ -70,6 +70,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
   const [postTab, setPostTab] = useState<ProfileTab>('posts');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [catType, setCatType] = useState(0);
+  const [catBackground, setCatBackground] = useState(0);
   const [catPosition, setCatPosition] = useState({ x: 52, y: 50 });
   const [draggingCat, setDraggingCat] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
@@ -86,6 +87,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       setProfile(p as Profile | null);
       const catSettings = (p ?? {}) as BannerCatSettings;
       setCatType(catSettings.banner_cat_type ?? 0);
+      setCatBackground(catSettings.banner_cat_background ?? 0);
       setCatPosition({ x: catSettings.banner_cat_x ?? 52, y: catSettings.banner_cat_y ?? 50 });
 
       const { data: userPosts } = await supabase
@@ -229,7 +231,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       {/* Banner */}
       <div ref={bannerRef} className="profile-banner relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-cyan-400 via-emerald-400 to-teal-400" onPointerMove={(event) => draggingCat && moveCat(event)} onPointerUp={finishCatDrag} onPointerLeave={finishCatDrag}>
         {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
-        <div className="profile-banner-habitat" aria-hidden="true" />
+        <div className={`profile-banner-habitat profile-banner-habitat-${catBackground}`} aria-hidden="true" />
         <div className="profile-banner-cat cat-fall" role="img" aria-label={`${CAT_TYPES[catType]} piksel kedi`} style={{ left: `${catPosition.x}%`, top: `${catPosition.y}%`, filter: `hue-rotate(${catType * 24}deg) saturate(${1 + catType * 0.04})` }} onPointerDown={(event) => { if (!isOwn) return; event.currentTarget.setPointerCapture(event.pointerId); setDraggingCat(true); moveCat(event); }} />
       </div>
 
@@ -263,7 +265,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
                 <input type="text" value={editCity} onChange={(e) => setEditCity(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400" placeholder="Şehir" />
                 <input type="text" value={editInterests} onChange={(e) => setEditInterests(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400" placeholder="İlgi alanları (virgülle ayır)" />
                 <input type="url" value={editSocialLink} onChange={(e) => setEditSocialLink(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400" placeholder="Sosyal medya linki" />
-                <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-3"><p className="text-xs font-semibold text-cyan-800">Banner kedisi</p><div className="mt-2 grid grid-cols-3 gap-2">{CAT_TYPES.map((name, index) => <button key={name} type="button" onClick={() => { setCatType(index); if (user) void supabase.from('profiles').update({ banner_cat_type: index }).eq('id', user.id); }} className={`rounded-lg border px-2 py-2 text-xs ${catType === index ? 'border-cyan-500 bg-white text-cyan-700' : 'border-transparent bg-cyan-100 text-cyan-800'}`}>{name}</button>)}</div><p className="mt-2 text-[11px] text-cyan-700">Kediyi banner içinde tutup sürükleyebilirsin.</p></div>
+                <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-3"><p className="text-xs font-semibold text-cyan-800">Banner kedisi</p><div className="mt-2 grid grid-cols-3 gap-2">{CAT_TYPES.map((name, index) => <button key={name} type="button" onClick={() => { setCatType(index); if (user) void supabase.from('profiles').update({ banner_cat_type: index }).eq('id', user.id); }} className={`rounded-lg border px-2 py-2 text-xs ${catType === index ? 'border-cyan-500 bg-white text-cyan-700' : 'border-transparent bg-cyan-100 text-cyan-800'}`}>{name}</button>)}</div><p className="mt-2 text-[11px] text-cyan-700">Kediyi banner içinde tutup sürükleyebilirsin.</p><p className="mt-3 text-xs font-semibold text-cyan-800">Kedi arka planı</p><div className="mt-2 grid grid-cols-3 gap-2">{['Yatak', 'Mama alanı', 'Sade zemin'].map((name, index) => <button key={name} type="button" onClick={() => { setCatBackground(index); if (user) void supabase.from('profiles').update({ banner_cat_background: index }).eq('id', user.id); }} className={`rounded-lg border px-2 py-2 text-xs ${catBackground === index ? 'border-cyan-500 bg-white text-cyan-700' : 'border-transparent bg-cyan-100 text-cyan-800'}`}>{name}</button>)}</div></div>
                 <div className="flex gap-2">
                   <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 disabled:opacity-50">
                     <Save className="w-4 h-4" /> Kaydet
