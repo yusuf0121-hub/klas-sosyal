@@ -73,6 +73,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
   const [catBackground, setCatBackground] = useState(0);
   const [catPosition, setCatPosition] = useState({ x: 52, y: 50 });
   const [draggingCat, setDraggingCat] = useState(false);
+  const [routines, setRoutines] = useState({ feed: false, play: false, rest: false });
   const bannerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,6 +90,9 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       setCatType(catSettings.banner_cat_type ?? 0);
       setCatBackground(catSettings.banner_cat_background ?? 0);
       setCatPosition({ x: catSettings.banner_cat_x ?? 52, y: catSettings.banner_cat_y ?? 50 });
+      const routine = p as Profile & { pet_routine_date?: string; pet_routine_feed?: boolean; pet_routine_play?: boolean; pet_routine_rest?: boolean };
+      const today = new Date().toISOString().slice(0, 10);
+      setRoutines(routine.pet_routine_date === today ? { feed: !!routine.pet_routine_feed, play: !!routine.pet_routine_play, rest: !!routine.pet_routine_rest } : { feed: false, play: false, rest: false });
 
       const { data: userPosts } = await supabase
         .from('posts')
@@ -179,6 +183,13 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
     void supabase.from('profiles').update({ banner_cat_type: catType, banner_cat_x: Math.round(catPosition.x), banner_cat_y: Math.round(catPosition.y) }).eq('id', user.id);
   }
 
+  function toggleRoutine(key: 'feed' | 'play' | 'rest') {
+    if (!user) return;
+    const next = { ...routines, [key]: !routines[key] };
+    setRoutines(next);
+    void supabase.from('profiles').update({ pet_routine_date: new Date().toISOString().slice(0, 10), pet_routine_feed: next.feed, pet_routine_play: next.play, pet_routine_rest: next.rest }).eq('id', user.id);
+  }
+
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -234,6 +245,12 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
         <div className={`profile-banner-habitat profile-banner-habitat-${catBackground}`} aria-hidden="true" />
         <div className="profile-banner-cat cat-fall" role="img" aria-label={`${CAT_TYPES[catType]} piksel kedi`} style={{ left: `${catPosition.x}%`, top: `${catPosition.y}%`, filter: `hue-rotate(${catType * 24}deg) saturate(${1 + catType * 0.04})` }} onPointerDown={(event) => { if (!isOwn) return; event.currentTarget.setPointerCapture(event.pointerId); setDraggingCat(true); moveCat(event); }} />
       </div>
+
+      <section className="cat-widget" aria-label="Kedi günlük rutini">
+        <div className="cat-widget-art" aria-hidden="true" style={{ filter: `hue-rotate(${catType * 24}deg)` }} />
+        <div className="min-w-0 flex-1"><p className="text-xs font-bold text-cyan-900">{profile.display_name}&apos;in kedisi</p><p className="text-[11px] text-cyan-700">Günlük bakım rutinini tamamla</p></div>
+        <div className="cat-routine-actions">{([['feed', 'Besle'], ['play', 'Oyna'], ['rest', 'Dinlendir']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => isOwn && toggleRoutine(key)} disabled={!isOwn} className={routines[key] ? 'is-done' : ''} aria-pressed={routines[key]}>{routines[key] ? '✓' : '○'} {label}</button>)}</div>
+      </section>
 
       {/* Profile header */}
       <div className="relative z-10 rounded-b-2xl border border-slate-100 border-t-0 bg-white px-6 pb-6 pt-0 shadow-sm">
