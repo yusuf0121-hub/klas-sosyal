@@ -248,7 +248,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
 
       <section className="cat-widget" aria-label="Kedi günlük rutini">
         <div className="cat-widget-art" aria-hidden="true" style={{ filter: `hue-rotate(${catType * 24}deg)` }} />
-        <div className="min-w-0 flex-1"><p className="text-xs font-bold text-cyan-900">{profile.display_name}&apos;in kedisi</p><p className="text-[11px] text-cyan-700">Günlük bakım rutinini tamamla</p></div>
+        <div className="min-w-0 flex-1"><p className="text-xs font-bold text-cyan-900">Kedi bakım alanı</p><p className="text-[11px] text-cyan-700">Günlük rutinlerini tamamla</p></div>
         <div className="cat-routine-actions">{([['feed', 'Besle'], ['play', 'Oyna'], ['rest', 'Dinlendir']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => isOwn && toggleRoutine(key)} disabled={!isOwn} className={routines[key] ? 'is-done' : ''} aria-pressed={routines[key]}>{routines[key] ? '✓' : '○'} {label}</button>)}</div>
       </section>
 
