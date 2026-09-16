@@ -240,17 +240,9 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       </div>
 
       {/* Banner */}
-      <div ref={bannerRef} className="profile-banner relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-cyan-400 via-emerald-400 to-teal-400" onPointerMove={(event) => draggingCat && moveCat(event)} onPointerUp={finishCatDrag} onPointerLeave={finishCatDrag}>
-        {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
-        <div className={`profile-banner-habitat profile-banner-habitat-${catBackground}`} aria-hidden="true" />
-        <div className="profile-banner-cat cat-fall" role="img" aria-label={`${CAT_TYPES[catType]} piksel kedi`} style={{ left: `${catPosition.x}%`, top: `${catPosition.y}%`, filter: `hue-rotate(${catType * 24}deg) saturate(${1 + catType * 0.04})` }} onPointerDown={(event) => { if (!isOwn) return; event.currentTarget.setPointerCapture(event.pointerId); setDraggingCat(true); moveCat(event); }} />
-      </div>
-
-      <section className="cat-widget" aria-label="Kedi günlük rutini">
-        <div className="cat-widget-art" aria-hidden="true" style={{ filter: `hue-rotate(${catType * 24}deg)` }} />
-        <div className="min-w-0 flex-1"><p className="text-xs font-bold text-cyan-900">Kedi bakım alanı</p><p className="text-[11px] text-cyan-700">Günlük rutinlerini tamamla</p></div>
-        <div className="cat-routine-actions">{([['feed', 'Besle'], ['play', 'Oyna'], ['rest', 'Dinlendir']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => isOwn && toggleRoutine(key)} disabled={!isOwn} className={routines[key] ? 'is-done' : ''} aria-pressed={routines[key]}>{routines[key] ? '✓' : '○'} {label}</button>)}</div>
-      </section>
+  <div className="profile-banner relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-violet-500 via-sky-400 to-cyan-400">
+  {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
+  </div>
 
       {/* Profile header */}
       <div className="relative z-10 rounded-b-2xl border border-slate-100 border-t-0 bg-white px-6 pb-6 pt-0 shadow-sm">
@@ -282,7 +274,6 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
                 <input type="text" value={editCity} onChange={(e) => setEditCity(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400" placeholder="Şehir" />
                 <input type="text" value={editInterests} onChange={(e) => setEditInterests(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400" placeholder="İlgi alanları (virgülle ayır)" />
                 <input type="url" value={editSocialLink} onChange={(e) => setEditSocialLink(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400" placeholder="Sosyal medya linki" />
-                <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-3"><p className="text-xs font-semibold text-cyan-800">Banner kedisi</p><div className="mt-2 grid grid-cols-3 gap-2">{CAT_TYPES.map((name, index) => <button key={name} type="button" onClick={() => { setCatType(index); if (user) void supabase.from('profiles').update({ banner_cat_type: index }).eq('id', user.id); }} className={`rounded-lg border px-2 py-2 text-xs ${catType === index ? 'border-cyan-500 bg-white text-cyan-700' : 'border-transparent bg-cyan-100 text-cyan-800'}`}>{name}</button>)}</div><p className="mt-2 text-[11px] text-cyan-700">Kediyi banner içinde tutup sürükleyebilirsin.</p><p className="mt-3 text-xs font-semibold text-cyan-800">Kedi arka planı</p><div className="mt-2 grid grid-cols-3 gap-2">{['Yatak', 'Mama alanı', 'Sade zemin'].map((name, index) => <button key={name} type="button" onClick={() => { setCatBackground(index); if (user) void supabase.from('profiles').update({ banner_cat_background: index }).eq('id', user.id); }} className={`rounded-lg border px-2 py-2 text-xs ${catBackground === index ? 'border-cyan-500 bg-white text-cyan-700' : 'border-transparent bg-cyan-100 text-cyan-800'}`}>{name}</button>)}</div></div>
                 <div className="flex gap-2">
                   <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 disabled:opacity-50">
                     <Save className="w-4 h-4" /> Kaydet

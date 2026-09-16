@@ -7,6 +7,7 @@ type Props = {
   onMessagesClick: () => void;
   onNotificationsClick: () => void;
   onTasksClick?: () => void;
+  onAssistantClick?: () => void;
 };
 
 /**
@@ -19,6 +20,7 @@ export default function AppHeader({
   onMessagesClick,
   onNotificationsClick,
   onTasksClick,
+  onAssistantClick,
 }: Props) {
   const { textColor, cardBg, cardBorder, subtextColor } = useTheme();
 
@@ -38,6 +40,8 @@ export default function AppHeader({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          {onAssistantClick && <button onClick={onAssistantClick} className="relative flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-105" style={{ background: cardBg, border: `1px solid ${cardBorder}` }} aria-label="Kişisel asistan"><Sparkles className="h-5 w-5 text-violet-500" /></button>}
+
           {onTasksClick && (
             <button
               onClick={onTasksClick}

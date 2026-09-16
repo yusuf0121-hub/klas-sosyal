@@ -11,6 +11,7 @@ import NotificationsScreen from '@/screens/NotificationsScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import AdminScreen from '@/screens/AdminScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
+import PersonalAssistant from '@/components/PersonalAssistant';
 import BottomNav, { type Tab } from '@/components/BottomNav';
 import AppHeader from '@/components/AppHeader';
 import { ThemeProvider, useTheme } from '@/lib/ThemeProvider';
@@ -21,13 +22,14 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'admin' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'admin' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
   messages: 'Mesajlar',
   notifications: 'Bildirimler',
   tasks: 'Günlük Görevler',
+  assistant: 'Kişisel Asistan',
   admin: 'Yönetici Paneli',
 };
 
@@ -191,6 +193,7 @@ function MainApp() {
           {overlay === 'messages' && <MessagesScreen onChatOpenChange={setChatOpen} />}
           {overlay === 'notifications' && <NotificationsScreen onProfileClick={openProfile} />}
           {overlay === 'tasks' && <DailyTasksScreen onClose={closeOverlay} />}
+          {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
         </>
       );
@@ -228,6 +231,7 @@ function MainApp() {
           onMessagesClick={() => (overlay === 'messages' ? closeOverlay() : openOverlay('messages'))}
           onNotificationsClick={() => (overlay === 'notifications' ? closeOverlay() : openOverlay('notifications'))}
           onTasksClick={() => (overlay === 'tasks' ? closeOverlay() : openOverlay('tasks'))}
+          onAssistantClick={() => (overlay === 'assistant' ? closeOverlay() : openOverlay('assistant'))}
         />
       )}
 
