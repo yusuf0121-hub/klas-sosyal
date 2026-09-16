@@ -264,6 +264,14 @@ export default function PostCard({ post, onProfileClick, onPostDeleted }: Props)
         </div>
       )}
 
+      {post.gif_url && (
+        <div className="px-4 pb-3"><img src={post.gif_url} alt="GIF" loading="lazy" className="w-full max-h-96 object-contain rounded-xl bg-slate-100" /></div>
+      )}
+
+      {post.music_url && (
+        <div className="px-4 pb-3"><a href={post.music_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 p-4 text-white"><span className="text-xl">♫</span><span className="text-sm font-semibold">{post.music_provider === 'youtube_music' ? 'YouTube Music’te dinle' : 'Spotify’da dinle'}</span></a></div>
+      )}
+
       {post.video_url && (
         <div className="px-4 pb-3">
           <div className={`rounded-xl overflow-hidden ${isDark ? 'neon-border-running' : ''}`}>

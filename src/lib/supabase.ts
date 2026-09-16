@@ -43,6 +43,9 @@ export type Post = {
   image_url: string | null;
   video_url: string | null;
   is_reel: boolean;
+  gif_url?: string | null;
+  music_url?: string | null;
+  music_provider?: 'spotify' | 'youtube_music' | null;
   created_at: string;
   profile?: Profile;
   like_count?: number;

@@ -16,6 +16,9 @@ export default function CreatePostScreen({ onPosted }: Props) {
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [gifUrl, setGifUrl] = useState('');
+  const [musicUrl, setMusicUrl] = useState('');
+  const [musicProvider, setMusicProvider] = useState<'spotify' | 'youtube_music'>('spotify');
   const [mediaType, setMediaType] = useState<MediaType>('none');
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -101,6 +104,8 @@ export default function CreatePostScreen({ onPosted }: Props) {
   function clearMedia() {
     setImageUrl('');
     setVideoUrl('');
+    setGifUrl('');
+    setMusicUrl('');
     setMediaType('none');
     setShowUrlInput(false);
     setIsReel(false);
@@ -117,6 +122,9 @@ export default function CreatePostScreen({ onPosted }: Props) {
       content: content.trim(),
       image_url: imageUrl.trim() || null,
       video_url: videoUrl.trim() || null,
+      gif_url: gifUrl.trim() || null,
+      music_url: musicUrl.trim() || null,
+      music_provider: musicUrl.trim() ? musicProvider : null,
       is_reel: isReel,
     });
 
@@ -156,7 +164,11 @@ export default function CreatePostScreen({ onPosted }: Props) {
             className="w-full px-0 py-2 text-slate-700 text-sm focus:outline-none resize-none placeholder-slate-400"
           />
 
-          <p className="text-right text-xs text-slate-400 mb-3">{content.length}/500</p>
+            <p className="text-right text-xs text-slate-400 mb-3">{content.length}/500</p>
+            <div className="mb-4 grid gap-2 rounded-xl bg-slate-50 p-3">
+              <input value={gifUrl} onChange={(e) => setGifUrl(e.target.value)} placeholder="GIF URL'si (https://...)" type="url" className="rounded-lg border border-slate-200 px-3 py-2 text-xs" />
+              <div className="flex gap-2"><select value={musicProvider} onChange={(e) => setMusicProvider(e.target.value as typeof musicProvider)} className="rounded-lg border border-slate-200 px-2 text-xs"><option value="spotify">Spotify</option><option value="youtube_music">YouTube Music</option></select><input value={musicUrl} onChange={(e) => setMusicUrl(e.target.value)} placeholder="Müzik bağlantısı" type="url" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs" /></div>
+            </div>
 
           {/* Media preview */}
           {mediaType === 'photo' && imageUrl && (

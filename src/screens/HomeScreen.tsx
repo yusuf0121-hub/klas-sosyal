@@ -82,7 +82,7 @@ export default function HomeScreen({ onProfileClick }: Props) {
             <p className="text-sm text-slate-400 mt-1">Video paylaşan ilk kişi sen ol!</p>
           </div>
         ) : (
-          <div className="space-y-4 snap-y snap-mandatory">
+          <div className="space-y-4 snap-y snap-mandatory max-h-[calc(100vh-180px)] overflow-y-auto overscroll-contain rounded-2xl">
             {reels.map((r) => (
               <div key={r.id} className="bg-slate-900 rounded-2xl overflow-hidden shadow-lg snap-start">
 
