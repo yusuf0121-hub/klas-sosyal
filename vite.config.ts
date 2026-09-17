@@ -9,14 +9,15 @@ function tenorApi(): Plugin {
       server.middlewares.use('/api/tenor', async (req, res) => {
         const url = new URL(req.url ?? '', 'http://localhost')
         const query = url.searchParams.get('q')?.trim()
-        const apiKey = process.env.TENOR_API_KEY
+        const apiKey = process.env.GIPHY_API_KEY
         if (!query) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing query' })); return }
-        if (!apiKey) { res.statusCode = 503; res.end(JSON.stringify({ error: 'TENOR_API_KEY is not configured' })); return }
-        const response = await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${encodeURIComponent(apiKey)}&client_key=klas_sosyal&limit=12&media_filter=gif`)
-        const data = await response.json() as { results?: Array<{ media_formats?: { gif?: { url?: string } } }> }
+        if (!apiKey) { res.statusCode = 503; res.end(JSON.stringify({ error: 'GIPHY_API_KEY is not configured' })); return }
+        const params = new URLSearchParams({ api_key: apiKey, q: query, limit: '12', rating: 'pg-13', lang: 'tr' })
+        const response = await fetch(`https://api.giphy.com/v1/gifs/search?${params}`)
+        const data = await response.json() as { data?: Array<{ id: string; title?: string; images?: { original?: { url?: string }; fixed_width?: { url?: string } } }> }
         res.statusCode = response.ok ? 200 : 502
         res.setHeader('content-type', 'application/json')
-        res.end(JSON.stringify({ results: (data.results ?? []).map((item) => ({ url: item.media_formats?.gif?.url })).filter((item) => item.url) }))
+        res.end(JSON.stringify({ results: (data.data ?? []).map((item) => ({ id: item.id, title: item.title ?? 'GIF', url: item.images?.original?.url ?? item.images?.fixed_width?.url })).filter((item) => item.url) }))
       })
     },
   }
