@@ -35,6 +35,10 @@ const PROFILE_TABS: { id: ProfileTab; label: string; icon: typeof Grid3x3 }[] = 
   { id: 'themes', label: 'Temalar', icon: Palette },
 ];
 
+type BannerCatSettings = { banner_cat_type?: number; banner_cat_x?: number; banner_cat_y?: number; banner_cat_background?: number };
+
+const CAT_TYPES = ['Turuncu', 'Siyam', 'Gece', 'Van', 'Smokin', 'Gri', 'Tekir', 'Çizgili', 'Klasik'];
+
 type Props = {
   userId: string;
   onBack: () => void;
@@ -65,6 +69,12 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
   const [showCoinStore, setShowCoinStore] = useState(false);
   const [postTab, setPostTab] = useState<ProfileTab>('posts');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [catType, setCatType] = useState(0);
+  const [catBackground, setCatBackground] = useState(0);
+  const [catPosition, setCatPosition] = useState({ x: 52, y: 50 });
+  const [draggingCat, setDraggingCat] = useState(false);
+  const [routines, setRoutines] = useState({ feed: false, play: false, rest: false });
+  const bannerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isOwn = user?.id === userId;
@@ -76,6 +86,13 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       const { data: p } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
       if (!active) return;
       setProfile(p as Profile | null);
+      const catSettings = (p ?? {}) as BannerCatSettings;
+      setCatType(catSettings.banner_cat_type ?? 0);
+      setCatBackground(catSettings.banner_cat_background ?? 0);
+      setCatPosition({ x: catSettings.banner_cat_x ?? 52, y: catSettings.banner_cat_y ?? 50 });
+      const routine = p as Profile & { pet_routine_date?: string; pet_routine_feed?: boolean; pet_routine_play?: boolean; pet_routine_rest?: boolean };
+      const today = new Date().toISOString().slice(0, 10);
+      setRoutines(routine.pet_routine_date === today ? { feed: !!routine.pet_routine_feed, play: !!routine.pet_routine_play, rest: !!routine.pet_routine_rest } : { feed: false, play: false, rest: false });
 
       const { data: userPosts } = await supabase
         .from('posts')
@@ -152,6 +169,27 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
     setSaving(false);
   }
 
+  function moveCat(event: React.PointerEvent<HTMLDivElement>) {
+    if (!isOwn || !bannerRef.current) return;
+    const bounds = bannerRef.current.getBoundingClientRect();
+    const x = Math.max(6, Math.min(94, ((event.clientX - bounds.left) / bounds.width) * 100));
+    const y = Math.max(18, Math.min(90, ((event.clientY - bounds.top) / bounds.height) * 100));
+    setCatPosition({ x, y });
+  }
+
+  function finishCatDrag() {
+    if (!draggingCat || !user) return;
+    setDraggingCat(false);
+    void supabase.from('profiles').update({ banner_cat_type: catType, banner_cat_x: Math.round(catPosition.x), banner_cat_y: Math.round(catPosition.y) }).eq('id', user.id);
+  }
+
+  function toggleRoutine(key: 'feed' | 'play' | 'rest') {
+    if (!user) return;
+    const next = { ...routines, [key]: !routines[key] };
+    setRoutines(next);
+    void supabase.from('profiles').update({ pet_routine_date: new Date().toISOString().slice(0, 10), pet_routine_feed: next.feed, pet_routine_play: next.play, pet_routine_rest: next.rest }).eq('id', user.id);
+  }
+
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -202,13 +240,13 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
       </div>
 
       {/* Banner */}
-      <div className="relative h-32 bg-gradient-to-br from-sky-400 via-emerald-400 to-teal-400 rounded-2xl mb-0 overflow-hidden">
-        {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
-      </div>
+  <div className="profile-banner relative z-0 h-32 overflow-hidden rounded-t-2xl bg-gradient-to-br from-violet-500 via-sky-400 to-cyan-400">
+  {profile.banner_url && <img src={profile.banner_url} alt="" className="w-full h-full object-cover" />}
+  </div>
 
       {/* Profile header */}
-      <div className="bg-white rounded-b-2xl border border-slate-100 border-t-0 shadow-sm px-6 pt-0 pb-6 relative">
-        <div className="-mt-12 mb-4 relative inline-block">
+      <div className="relative z-10 rounded-b-2xl border border-slate-100 border-t-0 bg-white px-6 pb-6 pt-0 shadow-sm">
+        <div className="relative z-20 -mt-12 mb-4 inline-block">
           <Avatar name={profile.display_name} id={profile.id} url={profile.avatar_url} size="xl" />
           {isOwn && (
             <button

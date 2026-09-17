@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Home as HomeIcon, Film, RefreshCw } from 'lucide-react';
 import { useFeed, useReels } from '@/hooks/useFeed';
 import PostCard from '@/components/PostCard';
+import StoriesBar from '@/components/StoriesBar';
+import CommunityLeaderboard from '@/components/CommunityLeaderboard';
+import CommunityRules from '@/components/CommunityRules';
 
 type Props = {
   onProfileClick: (userId: string) => void;
@@ -36,6 +39,10 @@ export default function HomeScreen({ onProfileClick }: Props) {
           <RefreshCw className="w-5 h-5" />
         </button>
       </div>
+
+      <StoriesBar onProfileClick={onProfileClick} />
+      <CommunityLeaderboard />
+      <CommunityRules />
 
       {/* Feed mode toggle */}
       <div className="flex gap-2 p-1 bg-white border border-slate-100 rounded-xl mb-5 shadow-sm">
@@ -75,7 +82,7 @@ export default function HomeScreen({ onProfileClick }: Props) {
             <p className="text-sm text-slate-400 mt-1">Video paylaşan ilk kişi sen ol!</p>
           </div>
         ) : (
-          <div className="space-y-4 snap-y snap-mandatory">
+          <div className="space-y-4 snap-y snap-mandatory max-h-[calc(100vh-180px)] overflow-y-auto overscroll-contain rounded-2xl">
             {reels.map((r) => (
               <div key={r.id} className="bg-slate-900 rounded-2xl overflow-hidden shadow-lg snap-start">
 

@@ -11,9 +11,9 @@ import NotificationsScreen from '@/screens/NotificationsScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import AdminScreen from '@/screens/AdminScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
+import PersonalAssistant from '@/components/PersonalAssistant';
 import BottomNav, { type Tab } from '@/components/BottomNav';
 import AppHeader from '@/components/AppHeader';
-import CreateFab from '@/components/CreateFab';
 import { ThemeProvider, useTheme } from '@/lib/ThemeProvider';
 import { Sparkles, Bell, X, Heart, MessageCircle, UserPlus, ArrowLeft } from 'lucide-react';
 import type { Notification } from '@/lib/supabase';
@@ -22,18 +22,20 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'admin' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'admin' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
   messages: 'Mesajlar',
   notifications: 'Bildirimler',
   tasks: 'Günlük Görevler',
+  assistant: 'Kişisel Asistan',
   admin: 'Yönetici Paneli',
 };
 
 function MainApp() {
   const { user, profile, loading } = useAuth();
+  const [matrixMode, setMatrixMode] = useState(false);
   const { isDark, textColor, cardBg, cardBorder, subtextColor } = useTheme();
   const { checkAndAward } = useBadgeChecker();
 
@@ -49,6 +51,12 @@ function MainApp() {
   useEffect(() => {
     if (user) checkAndAward();
   }, [user, checkAndAward]);
+
+  useEffect(() => {
+    const onEgg = (event: Event) => setMatrixMode((event as CustomEvent<boolean>).detail);
+    window.addEventListener('klas-easter-egg', onEgg);
+    return () => window.removeEventListener('klas-easter-egg', onEgg);
+  }, []);
 
   useEffect(() => {
     if (user && profile) {
@@ -185,6 +193,7 @@ function MainApp() {
           {overlay === 'messages' && <MessagesScreen onChatOpenChange={setChatOpen} />}
           {overlay === 'notifications' && <NotificationsScreen onProfileClick={openProfile} />}
           {overlay === 'tasks' && <DailyTasksScreen onClose={closeOverlay} />}
+          {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
         </>
       );
@@ -214,7 +223,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className={`min-h-screen ${matrixMode ? 'matrix-mode' : ''}`}>
       {showChrome && (
         <AppHeader
           unreadMessages={unreadMessages}
@@ -222,6 +231,7 @@ function MainApp() {
           onMessagesClick={() => (overlay === 'messages' ? closeOverlay() : openOverlay('messages'))}
           onNotificationsClick={() => (overlay === 'notifications' ? closeOverlay() : openOverlay('notifications'))}
           onTasksClick={() => (overlay === 'tasks' ? closeOverlay() : openOverlay('tasks'))}
+          onAssistantClick={() => (overlay === 'assistant' ? closeOverlay() : openOverlay('assistant'))}
         />
       )}
 
@@ -273,7 +283,6 @@ function MainApp() {
 
       {renderContent()}
 
-      {showChrome && overlay !== 'create' && <CreateFab onClick={() => openOverlay('create')} />}
       {showChrome && <BottomNav active={tab} onChange={handleTabChange} />}
     </div>
   );
