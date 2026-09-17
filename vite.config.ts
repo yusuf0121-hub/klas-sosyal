@@ -58,5 +58,5 @@ function assistantApi(): Plugin {
 
 export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''))
-  return { server: { allowedHosts: ['sb-250t08bqptd.vercel.run'] }, plugins: [react(), tenorApi(), assistantApi(), VitePWA({ registerType: 'autoUpdate', includeAssets: ['favicon.svg'] })], resolve: { alias: { '@': '/src' } } }
+  return { server: { allowedHosts: true }, plugins: [react(), tenorApi(), assistantApi(), VitePWA({ registerType: 'autoUpdate', includeAssets: ['favicon.svg'] })], resolve: { alias: { '@': '/src' } } }
 })
