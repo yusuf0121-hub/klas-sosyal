@@ -2,6 +2,26 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+function tenorApi(): Plugin {
+  return {
+    name: 'tenor-api',
+    configureServer(server) {
+      server.middlewares.use('/api/tenor', async (req, res) => {
+        const url = new URL(req.url ?? '', 'http://localhost')
+        const query = url.searchParams.get('q')?.trim()
+        const apiKey = process.env.TENOR_API_KEY
+        if (!query) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing query' })); return }
+        if (!apiKey) { res.statusCode = 503; res.end(JSON.stringify({ error: 'TENOR_API_KEY is not configured' })); return }
+        const response = await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${encodeURIComponent(apiKey)}&client_key=klas_sosyal&limit=12&media_filter=gif`)
+        const data = await response.json() as { results?: Array<{ media_formats?: { gif?: { url?: string } } }> }
+        res.statusCode = response.ok ? 200 : 502
+        res.setHeader('content-type', 'application/json')
+        res.end(JSON.stringify({ results: (data.results ?? []).map((item) => ({ url: item.media_formats?.gif?.url })).filter((item) => item.url) }))
+      })
+    },
+  }
+}
+
 function assistantApi(): Plugin {
   return {
     name: 'assistant-api',
@@ -37,5 +57,5 @@ function assistantApi(): Plugin {
 
 export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''))
-  return { plugins: [react(), assistantApi(), VitePWA({ registerType: 'autoUpdate', includeAssets: ['favicon.svg'] })], resolve: { alias: { '@': '/src' } } }
+  return { server: { allowedHosts: ['sb-250t08bqptd.vercel.run'] }, plugins: [react(), tenorApi(), assistantApi(), VitePWA({ registerType: 'autoUpdate', includeAssets: ['favicon.svg'] })], resolve: { alias: { '@': '/src' } } }
 })
