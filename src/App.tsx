@@ -160,7 +160,7 @@ function MainApp() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-emerald-400 flex items-center justify-center animate-pulse">
             <Sparkles className="w-6 h-6 text-white" />
           </div>
-          <p className="text-sm" style={{ color: subtextColor }}>Yükleniyor...</p>
+          <p className="text-sm font-semibold" style={{ color: subtextColor }}>Klas Sosyal yükleniyor...</p>
         </div>
       </div>
     );

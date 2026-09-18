@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Bot, Send } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth';
 
 type Props = { displayName?: string };
 
@@ -10,8 +12,16 @@ const demoReplies = [
 ];
 
 export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props) {
-  const [messages, setMessages] = useState([{ role: 'assistant', text: `${displayName}, ben senin kişisel asistanınım. Ne üzerinde çalışmak istersin?` }]);
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([{ role: 'assistant', text: `${displayName}, ben Klas AI. Ne üzerinde çalışmak istersin?` }]);
   const [input, setInput] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('klas_ai_messages').select('role, body').eq('user_id', user.id).order('created_at', { ascending: true }).limit(100).then(({ data }) => {
+      if (data?.length) setMessages(data.map((message) => ({ role: message.role as 'user' | 'assistant', text: message.body })));
+    });
+  }, [user]);
   const [isSending, setIsSending] = useState(false);
   const reply = useMemo(() => demoReplies[messages.length % demoReplies.length], [messages.length]);
 
@@ -19,13 +29,16 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
     const text = input.trim();
     if (!text) return;
     setMessages((current) => [...current, { role: 'user', text }]);
+    if (user) await supabase.from('klas_ai_messages').insert({ user_id: user.id, role: 'user', body: text });
     setInput('');
     setIsSending(true);
     try {
-      const response = await fetch('/api/assistant', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: text }) });
+      const response = await fetch('/api/assistant', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: text, history: messages.slice(-20) }) });
       const data = await response.json() as { text?: string; error?: string; details?: string };
       if (!response.ok) throw new Error(data.error ?? 'Asistan yanıt veremedi');
-      setMessages((current) => [...current, { role: 'assistant', text: data.text ?? reply }]);
+      const assistantText = data.text ?? reply;
+      setMessages((current) => [...current, { role: 'assistant', text: assistantText }]);
+      if (user) await supabase.from('klas_ai_messages').insert({ user_id: user.id, role: 'assistant', body: assistantText });
     } catch {
       setMessages((current) => [...current, { role: 'assistant', text: reply }]);
     } finally {
@@ -33,8 +46,8 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
     }
   }
 
-  return <section className="mx-auto w-full max-w-xl rounded-2xl border border-violet-100 bg-white p-4 shadow-sm" aria-label="Kişisel yapay zeka asistanı">
-    <div className="mb-4 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-white"><Bot className="h-5 w-5" /></div><div><h2 className="font-bold text-slate-900">Kişisel asistan</h2><p className="text-xs text-slate-500">Sana özel öneriler için konuş</p></div></div>
+  return <section className="mx-auto w-full max-w-xl rounded-2xl border border-violet-100 bg-white p-4 shadow-sm" aria-label="Klas AI kişisel asistanı">
+    <div className="mb-4 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-white"><Bot className="h-5 w-5" /></div><div><h2 className="font-bold text-slate-900">Klas AI</h2><p className="text-xs text-slate-500">Senin kişisel yapay zeka asistanın</p></div></div>
     <div className="mb-3 max-h-72 space-y-2 overflow-y-auto">{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm ${message.role === 'user' ? 'ml-auto bg-violet-600 text-white' : 'bg-violet-50 text-slate-700'}`}>{message.text}</div>)}</div>
     <div className="flex gap-2"><input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.keyCode !== 229) sendMessage(); }} placeholder="Asistana bir şey sor..." className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-400" /><button type="button" onClick={sendMessage} disabled={isSending} className="rounded-xl bg-violet-600 px-3 text-white disabled:cursor-wait disabled:opacity-60" aria-label="Mesaj gönder">{isSending ? '...' : <Send className="h-4 w-4" />}</button></div>
     <p className="mt-2 text-[11px] text-slate-400">Gemini bağlantısı varsa yanıtlar kişiselleştirilir; bağlantı yoksa temel öneriler gösterilir.</p>
