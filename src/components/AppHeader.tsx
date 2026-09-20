@@ -44,7 +44,7 @@ export default function AppHeader({
         <div className="flex items-center gap-1.5 shrink-0">
           {onGroupsClick && <button onClick={onGroupsClick} className="relative flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-105" style={{ background: cardBg, border: `1px solid ${cardBorder}` }} aria-label="Gruplar"><Users className="h-5 w-5" style={{ color: subtextColor }} /></button>}
 
-          {onAssistantClick && <button onClick={onAssistantClick} className="relative flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-105" style={{ background: cardBg, border: `1px solid ${cardBorder}` }} aria-label="Kişisel asistan"><Sparkles className="h-5 w-5" style={{ color: subtextColor }} /></button>}
+          {onAssistantClick && <button onClick={onAssistantClick} className="relative flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-105" style={{ background: cardBg, border: `1px solid ${cardBorder}` }} aria-label="Kişisel asistan"><span className="relative flex h-5 w-5 items-center justify-center rounded-md border-2" style={{ borderColor: subtextColor }}><span className="h-2 w-2 rotate-45 rounded-[2px] border" style={{ borderColor: subtextColor }} /></span></button>}
 
           {onTasksClick && (
             <button
