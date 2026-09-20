@@ -11,6 +11,7 @@ import NotificationsScreen from '@/screens/NotificationsScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import AdminScreen from '@/screens/AdminScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
+import GroupsScreen from '@/screens/GroupsScreen';
 import PersonalAssistant from '@/components/PersonalAssistant';
 import BottomNav, { type Tab } from '@/components/BottomNav';
 import AppHeader from '@/components/AppHeader';
@@ -22,14 +23,15 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'admin' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
   messages: 'Mesajlar',
   notifications: 'Bildirimler',
   tasks: 'Günlük Görevler',
-  assistant: 'Kişisel Asistan',
+  assistant: 'Klas AI',
+  groups: 'Gruplar',
   admin: 'Yönetici Paneli',
 };
 
@@ -194,6 +196,7 @@ function MainApp() {
           {overlay === 'notifications' && <NotificationsScreen onProfileClick={openProfile} />}
           {overlay === 'tasks' && <DailyTasksScreen onClose={closeOverlay} />}
           {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
+          {overlay === 'groups' && <GroupsScreen onClose={closeOverlay} />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
         </>
       );
@@ -232,6 +235,7 @@ function MainApp() {
           onNotificationsClick={() => (overlay === 'notifications' ? closeOverlay() : openOverlay('notifications'))}
           onTasksClick={() => (overlay === 'tasks' ? closeOverlay() : openOverlay('tasks'))}
           onAssistantClick={() => (overlay === 'assistant' ? closeOverlay() : openOverlay('assistant'))}
+          onGroupsClick={() => (overlay === 'groups' ? closeOverlay() : openOverlay('groups'))}
         />
       )}
 
