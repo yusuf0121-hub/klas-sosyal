@@ -19,7 +19,10 @@ export default function GroupsScreen({ onClose }: Props) {
   async function loadGroups() {
     setLoading(true)
     const { data, error: loadError } = await supabase.from('groups').select('*').order('created_at', { ascending: false })
-    if (loadError) setError('Gruplar yüklenemedi.')
+    if (loadError) {
+      console.error('[v0] Groups load failed:', loadError)
+      setError(`Gruplar yüklenemedi: ${loadError.message}`)
+    }
     setGroups((data ?? []) as Group[])
     setLoading(false)
   }
@@ -28,10 +31,21 @@ export default function GroupsScreen({ onClose }: Props) {
 
   async function createGroup() {
     const trimmedName = name.trim()
-    if (!user || trimmedName.length < 2) return
-    const { data, error: createError } = await supabase.from('groups').insert({ owner_id: user.id, name: trimmedName, description: description.trim(), privacy: 'open' }).select().single()
-    if (createError) { setError('Grup oluşturulamadı.'); return }
-    await supabase.from('group_members').insert({ group_id: data.id, user_id: user.id, role: 'owner' })
+    if (!user) { setError('Grup oluşturmak için giriş yapmalısın.'); return }
+    if (trimmedName.length < 2) { setError('Grup adı en az 2 karakter olmalı.'); return }
+    setError('')
+    const { data, error: createError } = await supabase.from('groups').insert({ owner_id: user.id, name: trimmedName, description: description.trim(), privacy: 'open', tags: [] }).select('*').single()
+    if (createError || !data) {
+      console.error('[v0] Group creation failed:', createError)
+      setError(createError?.message ? `Grup oluşturulamadı: ${createError.message}` : 'Grup oluşturulamadı.')
+      return
+    }
+    const { error: membershipError } = await supabase.from('group_members').insert({ group_id: data.id, user_id: user.id, role: 'owner' })
+    if (membershipError) {
+      console.error('[v0] Group membership creation failed:', membershipError)
+      setError('Grup oluşturuldu ancak üyelik kaydedilemedi. Lütfen grupları yenileyip tekrar dene.')
+      return
+    }
     setName(''); setDescription(''); setShowCreate(false); setSelected(data as Group); await loadGroups()
   }
 
