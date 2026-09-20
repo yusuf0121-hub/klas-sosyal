@@ -4,6 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PU
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseProjectUrl = supabaseUrl;
 
 export type Profile = {
   id: string;
