@@ -17,6 +17,14 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
   return data.publicUrl;
 }
 
+export async function uploadStory(userId: string, file: File): Promise<string | null> {
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const fileName = `${userId}/story-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: false });
+  if (error) { console.error('Story upload error:', error); return null; }
+  return supabase.storage.from('avatars').getPublicUrl(fileName).data.publicUrl;
+}
+
 export async function uploadBanner(userId: string, file: File): Promise<string | null> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
   const fileName = `${userId}/banner-${Date.now()}.${ext}`;

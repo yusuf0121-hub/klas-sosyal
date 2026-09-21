@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
+import { uploadStory } from '@/lib/upload';
 import { supabase, type Profile } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 
@@ -20,6 +21,7 @@ export default function StoriesBar({ onProfileClick }: { onProfileClick?: (userI
   const [content, setContent] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [selected, setSelected] = useState<Story | null>(null);
 
   const loadStories = useCallback(async () => {
@@ -32,6 +34,15 @@ export default function StoriesBar({ onProfileClick }: { onProfileClick?: (userI
   }, []);
 
   useEffect(() => { loadStories(); }, [loadStories]);
+
+  async function handlePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    const url = await uploadStory(user.id, file);
+    if (url) setMediaUrl(url);
+    setUploading(false);
+  }
 
   async function publishStory(e: React.FormEvent) {
     e.preventDefault();
@@ -69,7 +80,7 @@ export default function StoriesBar({ onProfileClick }: { onProfileClick?: (userI
       {(open || selected) && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setOpen(false); setSelected(null); }}>
         <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
           <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">{selected ? 'Hikâye' : 'Yeni hikâye'}</h2><button type="button" onClick={() => { setOpen(false); setSelected(null); }} aria-label="Kapat"><X className="h-5 w-5 text-slate-500" /></button></div>
-          {selected ? <div className="space-y-3"><p className="text-sm font-semibold text-slate-800">{selected.profile?.display_name}</p>{selected.media_url && <img src={selected.media_url} alt="Hikâye görseli" className="max-h-80 w-full rounded-xl object-cover" />}<p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{selected.content}</p><p className="text-xs text-slate-400">24 saat içinde kaybolur.</p></div> : <form onSubmit={publishStory} className="space-y-3"><textarea value={content} onChange={(e) => setContent(e.target.value)} rows={4} maxLength={300} placeholder="Bugün ne paylaşmak istiyorsun?" className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400" /><input type="url" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="Görsel bağlantısı (isteğe bağlı)" className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-sky-400" /><button type="submit" disabled={saving || (!content.trim() && !mediaUrl.trim())} className="h-10 w-full rounded-xl bg-slate-900 text-sm font-semibold text-white disabled:opacity-40">{saving ? 'Paylaşılıyor...' : 'Hikâyeyi paylaş'}</button></form>}
+          {selected ? <div className="space-y-3"><p className="text-sm font-semibold text-slate-800">{selected.profile?.display_name}</p>{selected.media_url && <img src={selected.media_url} alt="Hikâye görseli" className="max-h-80 w-full rounded-xl object-cover" />}<p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{selected.content}</p><p className="text-xs text-slate-400">24 saat içinde kaybolur.</p></div> : <form onSubmit={publishStory} className="space-y-3"><textarea value={content} onChange={(e) => setContent(e.target.value)} rows={4} maxLength={300} placeholder="Bugün ne paylaşmak istiyorsun?" className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400" /><label className="flex h-11 cursor-pointer items-center justify-center rounded-xl border border-dashed border-sky-300 bg-sky-50 text-sm font-semibold text-sky-700">{uploading ? 'Fotoğraf yükleniyor...' : mediaUrl ? 'Fotoğraf seçildi' : 'Fotoğraflardan hikâye ekle'}<input type="file" accept="image/*" onChange={handlePhoto} className="sr-only" /></label>{mediaUrl && <img src={mediaUrl} alt="Hikâye önizlemesi" className="max-h-48 w-full rounded-xl object-cover" />}<button type="submit" disabled={saving || (!content.trim() && !mediaUrl.trim())} className="h-10 w-full rounded-xl bg-slate-900 text-sm font-semibold text-white disabled:opacity-40">{saving ? 'Paylaşılıyor...' : 'Hikâyeyi paylaş'}</button></form>}
         </div>
       </div>}
     </>
