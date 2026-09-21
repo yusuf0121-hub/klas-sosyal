@@ -16,6 +16,7 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  verifyPasswordResetCode: (email: string, token: string) => Promise<{ error: string | null }>;
   updatePassword: (password: string) => Promise<{ error: string | null }>;
 };
 
@@ -154,16 +155,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/#type=recovery`,
-    });
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    if (error) return { error: translateError(error.message) };
+    return { error: null };
+  }
+
+  async function verifyPasswordResetCode(email: string, token: string) {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'recovery' });
     if (error) return { error: translateError(error.message) };
     return { error: null };
   }
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, verifyOtp, pendingVerificationEmail, signOut, refreshProfile, resetPassword, updatePassword }}
+      value={{ session, user: session?.user ?? null, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, verifyOtp, pendingVerificationEmail, signOut, refreshProfile, resetPassword, verifyPasswordResetCode, updatePassword }}
     >
       {children}
     </AuthContext.Provider>
