@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/auth';
 import { Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function AuthScreen() {
-  const { signIn, signUp, signInWithGoogle, signInWithFacebook, verifyOtp, resetPassword, verifyPasswordResetCode, updatePassword, pendingVerificationEmail } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithFacebook, verifyOtp, resetPassword, updatePassword, pendingVerificationEmail } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [forgotMode, setForgotMode] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -13,7 +13,6 @@ export default function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const [resetCode, setResetCode] = useState('');
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -86,16 +85,7 @@ export default function AuthScreen() {
     const normalizedEmail = email.trim().toLowerCase();
     setEmail(normalizedEmail);
     const { error: err } = await resetPassword(normalizedEmail);
-    if (err) setError(err); else { setResetSent(true); setResetCode(''); }
-    setBusy(false);
-  }
-
-  async function handleResetCode(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setBusy(true);
-    const { error: err } = await verifyPasswordResetCode(email, resetCode.trim());
-    if (err) setError(err); else setRecoveryMode(true);
+    if (err) setError(err); else setResetSent(true);
     setBusy(false);
   }
 
@@ -196,11 +186,11 @@ export default function AuthScreen() {
             <div className="text-center">
               <div className="rounded-md border border-[#dfe1e5] bg-white px-5 py-6">
                 <Mail className="mx-auto mb-4 h-7 w-7 text-[#64748b]" aria-hidden="true" />
-                <p className="text-sm font-medium">Kod gönderildi</p>
-                <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{email} adresine 6 haneli şifre sıfırlama kodu gönderdik. Kodu aşağıya girerek yeni şifreni belirleyebilirsin.</p>
+                <p className="text-sm font-medium">E-posta gönderildi</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{email} adresine şifre yenileme bağlantısı gönderdik. E-postadaki bağlantıya dokunarak yeni şifreni belirleyebilirsin.</p>
               </div>
               {error && <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-left text-sm text-rose-600">{error}</div>}
-              <form onSubmit={handleResetCode} className="mt-5 space-y-3"><label htmlFor="reset-code" className="block text-left text-sm font-medium">Şifre sıfırlama kodu</label><input id="reset-code" type="text" inputMode="numeric" autoComplete="one-time-code" required maxLength={6} value={resetCode} onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="123456" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-center text-lg tracking-[0.35em] outline-none focus:border-[#18181b]" /><button type="submit" disabled={busy || resetCode.length !== 6} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white disabled:opacity-50">{busy ? 'Doğrulanıyor...' : 'Kodu doğrula'}</button></form><button type="button" onClick={() => void handleReset({ preventDefault: () => {} } as React.FormEvent)} className="mt-3 w-full text-sm underline underline-offset-2">Kodu yeniden gönder</button><button type="button" onClick={() => { setForgotMode(false); setResetSent(false); setResetCode(''); setEmail(''); }} className="mt-6 text-sm underline underline-offset-2">Giriş ekranına dön</button>
+              <button type="button" onClick={() => { setResetSent(false); setError(null); }} className="mt-5 w-full text-sm underline underline-offset-2">Farklı e-posta kullan</button><button type="button" onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); setError(null); }} className="mt-3 w-full text-sm underline underline-offset-2">Giriş ekranına dön</button>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-6">
