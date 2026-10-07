@@ -45,9 +45,10 @@ type Props = {
   onProfileClick: (id: string) => void;
   isAdmin?: boolean;
   onAdminClick?: () => void;
-};
+  onSettingsClick?: () => void;
+  };
 
-export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin, onAdminClick }: Props) {
+export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin, onAdminClick, onSettingsClick }: Props) {
   const { user, profile: myProfile, signOut, refreshProfile } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -334,6 +335,7 @@ export default function ProfileScreen({ userId, onBack, onProfileClick, isAdmin,
                 <button onClick={startEdit} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-50 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-100 transition-colors">
                   <Settings className="w-4 h-4" /> Düzenle
                 </button>
+                <button onClick={onSettingsClick} className="rounded-xl bg-slate-50 px-3 py-2.5 text-slate-700" aria-label="Ayarlar"><Settings className="h-4 w-4" /></button>
                 {isAdmin && (
                   <button onClick={onAdminClick} className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 text-white text-sm font-medium rounded-xl hover:shadow-md transition-all flex items-center gap-1.5">
                     <Shield className="w-4 h-4" /> Yönetici
