@@ -77,13 +77,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
   async function signUp(email: string, password: string, displayName: string, bio?: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = displayName.trim();
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         data: {
-          display_name: displayName,
-          bio: bio || '',
+          display_name: normalizedName,
+          bio: bio?.trim() || '',
         },
       },
     });
@@ -101,12 +103,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user) {
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        display_name: displayName,
-        email,
-        bio: bio || null,
-      }, { onConflict: 'id' });
+      const profilePayload = { id: data.user.id, display_name: normalizedName, email: normalizedEmail, bio: bio?.trim() || null };
+      const { error: profileError } = await supabase.from('profiles').upsert(profilePayload, { onConflict: 'id' });
+      if (profileError) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await supabase.from('profiles').upsert(profilePayload, { onConflict: 'id' });
+      }
       await loadProfile(data.user.id);
     }
     return { error: null };
@@ -132,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     if (error) {
       if (error.message.includes('Email not confirmed')) {
         setPendingVerificationEmail(email);
