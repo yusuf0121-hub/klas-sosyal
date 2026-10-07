@@ -1,9 +1,10 @@
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!process.env.GROQ_API_KEY) return res.status(503).json({ error: 'GROQ_API_KEY is not configured' });
-  const message = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
-  if (!message) return res.status(400).json({ error: 'Missing message' });
+  const rawMessage = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
   const attachment = req.body?.attachment && typeof req.body.attachment === 'object' ? req.body.attachment : null;
+  const message = rawMessage || (attachment ? 'Bu dosyayı incele, içeriğini özetle ve önemli noktaları açıkla.' : '');
+  if (!message) return res.status(400).json({ error: 'Missing message' });
   const attachmentContext = attachment ? `\n\nKullanıcı şu dosyayı ekledi: ${String(attachment.name || 'dosya')} (${String(attachment.type || 'bilinmeyen tür')}).${typeof attachment.text === 'string' ? ` Dosya içeriği:\n${attachment.text.slice(0, 12000)}` : ' Dosya içeriği metin olarak okunamadı; bunu dürüstçe belirt.'}` : '';
   const history = Array.isArray(req.body?.history) ? req.body.history.slice(-20).filter((item: any) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.text === 'string').map((item: any) => ({ role: item.role, content: item.text.slice(0, 4000) })) : [];
 

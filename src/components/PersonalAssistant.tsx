@@ -11,14 +11,22 @@ function extractCode(text: string) {
   return match?.[1]?.trim() || null;
 }
 
+function codeExtension(text: string) {
+  const language = text.match(/```([\w+#.-]+)/)?.[1]?.toLowerCase();
+  const extensions: Record<string, string> = { html: 'html', css: 'css', javascript: 'js', js: 'js', typescript: 'ts', ts: 'ts', tsx: 'tsx', jsx: 'jsx', python: 'py', py: 'py', java: 'java', csharp: 'cs', cs: 'cs', cpp: 'cpp', c: 'c', sql: 'sql', json: 'json', php: 'php', go: 'go', rust: 'rs', bash: 'sh', sh: 'sh', yaml: 'yml', markdown: 'md', md: 'md' };
+  return (language && extensions[language]) || 'txt';
+}
+
 function downloadCode(text: string, index: number) {
   const code = extractCode(text);
   if (!code) return;
+  const requestedFilename = text.match(/(?:dosya adı|filename|file name|kaydet)\s*[:=]?\s*[`\"']?([\w.-]+\.[a-z0-9]+)[`\"']?/i)?.[1];
+  const filename = requestedFilename || `klas-ai-kod-${index + 1}.${codeExtension(text)}`;
   const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `klas-ai-kod-${index + 1}.txt`;
+  link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -40,7 +48,7 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
   useEffect(() => {
     if (!user) return;
     supabase.from('klas_ai_messages').select('role, body').eq('user_id', user.id).order('created_at', { ascending: true }).limit(100).then(({ data }) => {
-      if (data?.length) setMessages(data.map((message) => ({ role: message.role as 'user' | 'assistant', text: message.body })));
+      if (data?.length) setMessages(data.filter((message) => message.role === 'user' || message.role === 'assistant').map((message) => ({ role: message.role as 'user' | 'assistant', text: message.body })));
     });
   }, [user]);
   const [isSending, setIsSending] = useState(false);
@@ -49,8 +57,8 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
   async function handleAttachment(file?: File) {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) return;
-    const isText = file.type.startsWith('text/') || /\.(md|json|csv|ts|tsx|js|jsx|py)$/i.test(file.name);
-    const text = isText ? (await file.text()).slice(0, 12000) : undefined;
+    const isText = file.type.startsWith('text/') || /\.(md|json|csv|ts|tsx|js|jsx|py|java|cs|cpp|c|sql|php|go|rs|sh|yml|yaml|xml|html|css)$/i.test(file.name);
+    const text = isText ? (await file.text()).slice(0, 20000) : undefined;
     const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
     setAttachment({ name: file.name, type: file.type || 'application/octet-stream', text, preview });
   }
@@ -104,7 +112,7 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
     <div className="mb-4 flex flex-wrap gap-1.5">{capabilities.map((capability) => <span key={capability} className="rounded-full border border-slate-200 px-2.5 py-1 text-[11px] text-slate-500">{capability}</span>)}</div>
     <div className="mb-3 max-h-72 space-y-2 overflow-y-auto">{messages.map((message, index) => { const hasCode = message.role === 'assistant' && Boolean(extractCode(message.text)); return <div key={`${message.role}-${index}`} className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm ${message.role === 'user' ? 'ml-auto bg-violet-600 text-white' : 'bg-violet-50 text-slate-700'}`}><div className="whitespace-pre-wrap">{message.text}</div>{hasCode && <button type="button" onClick={() => downloadCode(message.text, index)} className="mt-2 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">Kodu indir</button>}</div>})}</div>
     {attachment && <div className="mb-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs text-slate-600">{attachment.preview && <img src={attachment.preview} alt="Ek dosya önizlemesi" className="h-10 w-10 rounded-lg object-cover" />}<span className="min-w-0 flex-1 truncate">{attachment.name}</span><button type="button" onClick={() => setAttachment(null)} aria-label="Dosyayı kaldır"><X className="h-4 w-4" /></button></div>}
-    <div className="mb-2 flex flex-wrap gap-2"><label className="flex cursor-pointer items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"><Paperclip className="h-4 w-4" /> Dosya ekle<input type="file" accept="image/*,.txt,.md,.json,.csv,.js,.jsx,.ts,.tsx,.py" className="sr-only" onChange={(event) => void handleAttachment(event.target.files?.[0])} /></label><button type="button" onClick={improveText} disabled={!input.trim() || isSending} className="rounded-xl border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 disabled:opacity-40">Metni geliştir</button><button type="button" onClick={shareText} disabled={!input.trim() || !user} className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 disabled:opacity-40">Paylaş</button></div>
+    <div className="mb-2 flex flex-wrap gap-2"><label className="flex cursor-pointer items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"><Paperclip className="h-4 w-4" /> Dosya ekle<input type="file" accept="image/*,.txt,.md,.json,.csv,.js,.jsx,.ts,.tsx,.py,.java,.cs,.cpp,.c,.sql,.php,.go,.rs,.sh,.yml,.yaml,.xml,.html,.css" className="sr-only" onChange={(event) => void handleAttachment(event.target.files?.[0])} /></label><button type="button" onClick={improveText} disabled={!input.trim() || isSending} className="rounded-xl border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 disabled:opacity-40">Metni geliştir</button><button type="button" onClick={shareText} disabled={!input.trim() || !user} className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 disabled:opacity-40">Paylaş</button></div>
     <div className="flex gap-2"><input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.keyCode !== 229) sendMessage(); }} placeholder="Asistana bir şey sor..." className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-400" /><button type="button" onClick={sendMessage} disabled={isSending} className="rounded-xl bg-violet-600 px-3 text-white disabled:cursor-wait disabled:opacity-60" aria-label="Mesaj gönder">{isSending ? '...' : <Send className="h-4 w-4" />}</button></div>
     <p className="mt-2 text-[11px] text-slate-400">Gemini bağlantısı varsa yanıtlar kişiselleştirilir; bağlantı yoksa temel öneriler gösterilir.</p>
   </section>;
