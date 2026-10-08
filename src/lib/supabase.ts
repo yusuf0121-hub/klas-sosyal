@@ -71,7 +71,7 @@ export type Notification = {
   id: string;
   user_id: string;
   actor_id: string;
-  type: 'like' | 'comment' | 'follow';
+  type: 'like' | 'comment' | 'follow' | 'message' | 'mention' | 'system';
   post_id: string | null;
   read: boolean;
   created_at: string;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Heart, MessageCircle, UserPlus, Bell } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, Bell, AtSign, Info } from 'lucide-react';
 import { supabase, type Notification } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { timeAgo } from '@/lib/utils';
@@ -33,19 +33,26 @@ export default function NotificationsScreen({ onProfileClick }: Props) {
       await supabase.from('notifications').update({ read: true }).eq('user_id', user!.id).eq('read', false);
     }
     load();
+    const channel = supabase.channel(`notifications-${user.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => { load(); }).subscribe();
 
-    return () => { active = false; };
+    return () => { active = false; void supabase.removeChannel(channel); };
   }, [user]);
 
   const iconFor = (type: Notification['type']) => {
     if (type === 'like') return <Heart className="w-4 h-4 text-rose-500 fill-current" />;
     if (type === 'comment') return <MessageCircle className="w-4 h-4 text-sky-500" />;
+    if (type === 'message') return <MessageCircle className="w-4 h-4 text-violet-500" />;
+    if (type === 'mention') return <AtSign className="w-4 h-4 text-amber-500" />;
+    if (type === 'system') return <Info className="w-4 h-4 text-slate-500" />;
     return <UserPlus className="w-4 h-4 text-emerald-500" />;
   };
 
   const textFor = (type: Notification['type']) => {
     if (type === 'like') return 'gönderini beğendi.';
     if (type === 'comment') return 'gönderine yorum yaptı.';
+    if (type === 'message') return 'sana mesaj gönderdi.';
+    if (type === 'mention') return 'bir gönderide senden bahsetti.';
+    if (type === 'system') return 'sistem bildirimi gönderdi.';
     return 'seni takip etmeye başladı.';
   };
 
