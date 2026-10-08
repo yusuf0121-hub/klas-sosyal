@@ -44,6 +44,8 @@ export default function PostCard({ post, onProfileClick, onPostDeleted }: Props)
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(post.content);
   const reactionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function toggleLike() {
@@ -189,6 +191,12 @@ export default function PostCard({ post, onProfileClick, onPostDeleted }: Props)
     onPostDeleted?.();
   }
 
+  async function saveEdit() {
+    if (!user || post.user_id !== user.id || !editedContent.trim()) return;
+    const { error } = await supabase.from('posts').update({ content: editedContent.trim() }).eq('id', post.id).eq('user_id', user.id);
+    if (!error) { post.content = editedContent.trim(); setEditing(false); }
+  }
+
   async function submitReport(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !reportReason.trim()) return;
@@ -232,13 +240,13 @@ export default function PostCard({ post, onProfileClick, onPostDeleted }: Props)
           <p className="text-xs" style={{ color: subtextColor }}>{timeAgo(post.created_at)}</p>
         </div>
         {user?.id === post.user_id ? (
-          <button
+          <div className="flex items-center gap-1"><button onClick={() => setEditing(true)} className="rounded-lg p-2 text-xs" style={{ color: subtextColor }}>Düzenle</button><button
             onClick={deletePost}
             className="p-2 rounded-lg transition-colors hover:bg-rose-500/10"
             style={{ color: subtextColor }}
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </button></div>
         ) : (
           <button
             onClick={() => setShowReportModal(true)}
@@ -251,9 +259,7 @@ export default function PostCard({ post, onProfileClick, onPostDeleted }: Props)
       </div>
 
       {/* Content */}
-      <div className="px-4 pb-3">
-        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words" style={{ color: textColor }}>{post.content}</p>
-      </div>
+      <div className="px-4 pb-3">{editing ? <div className="space-y-2"><textarea value={editedContent} onChange={(e) => setEditedContent(e.target.value)} rows={4} className="w-full rounded-xl border p-3 text-sm" style={{ background: cardBg, color: textColor, borderColor: cardBorder }} /><div className="flex justify-end gap-2"><button type="button" onClick={() => { setEditedContent(post.content); setEditing(false); }} className="rounded-lg px-3 py-1.5 text-sm" style={{ color: subtextColor }}>Vazgeç</button><button type="button" onClick={() => void saveEdit()} className="rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white">Kaydet</button></div></div> : <p className="text-sm leading-relaxed whitespace-pre-wrap break-words" style={{ color: textColor }}>{post.content}</p>}</div>
 
       {/* Media with neon effects */}
       {post.image_url && (
