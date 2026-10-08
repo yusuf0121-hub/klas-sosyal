@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Search as SearchIcon, Users, Film, Video } from 'lucide-react';
+import { Search as SearchIcon, Users, Film, Video, FileText } from 'lucide-react';
+import PostCard from '@/components/PostCard';
 import { supabase, type Profile, type Post } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import Avatar from '@/components/Avatar';
@@ -8,13 +9,14 @@ type Props = {
   onProfileClick: (userId: string) => void;
 };
 
-type SearchMode = 'users' | 'videos';
+type SearchMode = 'users' | 'posts' | 'videos';
 
 export default function SearchScreen({ onProfileClick }: Props) {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<SearchMode>('users');
   const [userResults, setUserResults] = useState<Profile[]>([]);
+  const [postResults, setPostResults] = useState<Post[]>([]);
   const [videoResults, setVideoResults] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [suggested, setSuggested] = useState<Profile[]>([]);
@@ -37,6 +39,7 @@ export default function SearchScreen({ onProfileClick }: Props) {
     const q = query.trim();
     if (q.length < 1) {
       setUserResults([]);
+      setPostResults([]);
       setVideoResults([]);
       return;
     }
@@ -49,6 +52,9 @@ export default function SearchScreen({ onProfileClick }: Props) {
           .ilike('display_name', `%${q}%`)
           .limit(20);
         setUserResults((data ?? []) as Profile[]);
+      } else if (mode === 'posts') {
+        const { data } = await supabase.from('posts').select('*, profile:profiles!posts_user_id_fkey(*)').ilike('content', `%${q}%`).order('created_at', { ascending: false }).limit(20);
+        setPostResults((data ?? []) as Post[]);
       } else {
         const { data } = await supabase
           .from('posts')
@@ -82,6 +88,13 @@ export default function SearchScreen({ onProfileClick }: Props) {
           Kullanıcılar
         </button>
         <button
+          onClick={() => { setMode('posts'); setQuery(''); }}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'posts' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          <FileText className="w-4 h-4" />
+          Gönderiler
+        </button>
+        <button
           onClick={() => { setMode('videos'); setQuery(''); }}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
             mode === 'videos' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
@@ -98,7 +111,7 @@ export default function SearchScreen({ onProfileClick }: Props) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={mode === 'users' ? 'Kullanıcı ara...' : 'Video ara...'}
+          placeholder={mode === 'users' ? 'Kullanıcı ara...' : mode === 'posts' ? 'Gönderilerde ara...' : 'Video ara...'}
           className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all shadow-sm"
         />
       </div>
@@ -144,6 +157,8 @@ export default function SearchScreen({ onProfileClick }: Props) {
             ))}
           </div>
         )
+      ) : mode === 'posts' ? (
+        postResults.length === 0 ? <div className="py-16 text-center"><FileText className="mx-auto mb-3 h-12 w-12 text-slate-300" /><p className="text-sm text-slate-400">{query.trim() ? 'Gönderi bulunamadı.' : 'Gönderi aramak için yazmaya başla.'}</p></div> : <div className="space-y-3">{postResults.map((post) => <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />)}</div>
       ) : videoResults.length === 0 ? (
         <div className="text-center py-16">
           <Film className="w-12 h-12 text-slate-300 mx-auto mb-3" />
