@@ -25,13 +25,17 @@ export default function StoriesBar({ onProfileClick }: { onProfileClick?: (userI
   const [selected, setSelected] = useState<Story | null>(null);
 
   const loadStories = useCallback(async () => {
-    const { data } = await supabase
-      .from('stories')
-      .select('*, profile:profiles!stories_user_id_fkey(*)')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
+    const now = new Date().toISOString();
+    let visibleUserIds: string[] | null = null;
+    if (user) {
+      const { data: follows } = await supabase.from('follows').select('following_id').eq('follower_id', user.id);
+      visibleUserIds = [user.id, ...(follows ?? []).map((follow) => follow.following_id)];
+    }
+    let query = supabase.from('stories').select('*, profile:profiles!stories_user_id_fkey(*)').gt('expires_at', now).order('created_at', { ascending: false });
+    if (visibleUserIds) query = query.in('user_id', visibleUserIds);
+    const { data } = await query;
     setStories((data ?? []) as Story[]);
-  }, []);
+  }, [user]);
 
   useEffect(() => { loadStories(); }, [loadStories]);
 
