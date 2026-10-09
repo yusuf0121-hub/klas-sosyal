@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image as ImageIcon, Video as VideoIcon, X, Send, Film, Upload } from 'lucide-react';
+import { Image as ImageIcon, Video as VideoIcon, X, Film, Upload } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import Avatar from '@/components/Avatar';
@@ -16,11 +16,6 @@ export default function CreatePostScreen({ onPosted }: Props) {
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [gifUrl, setGifUrl] = useState('');
-  const [musicUrl, setMusicUrl] = useState('');
-  const [musicProvider, setMusicProvider] = useState<'spotify' | 'youtube_music'>('spotify');
-  const [tenorQuery, setTenorQuery] = useState('');
-  const [tenorResults, setTenorResults] = useState<string[]>([]);
   const [mediaType, setMediaType] = useState<MediaType>('none');
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -106,8 +101,6 @@ export default function CreatePostScreen({ onPosted }: Props) {
   function clearMedia() {
     setImageUrl('');
     setVideoUrl('');
-    setGifUrl('');
-    setMusicUrl('');
     setMediaType('none');
     setShowUrlInput(false);
     setIsReel(false);
@@ -124,9 +117,9 @@ export default function CreatePostScreen({ onPosted }: Props) {
       content: content.trim(),
       image_url: imageUrl.trim() || null,
       video_url: videoUrl.trim() || null,
-      gif_url: gifUrl.trim() || null,
-      music_url: musicUrl.trim() || null,
-      music_provider: musicUrl.trim() ? musicProvider : null,
+      gif_url: null,
+      music_url: null,
+      music_provider: null,
       is_reel: isReel,
     });
 
@@ -167,12 +160,6 @@ export default function CreatePostScreen({ onPosted }: Props) {
           />
 
             <p className="text-right text-xs text-slate-400 mb-3">{content.length}/500</p>
-            <div className="mb-4 grid gap-2 rounded-xl bg-slate-50 p-3">
-              <div className="flex gap-2"><input value={tenorQuery} onChange={(e) => setTenorQuery(e.target.value)} placeholder="Tenor’da GIF ara (demo)" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs" /><button type="button" onClick={async () => { const response = await fetch(`/api/tenor?q=${encodeURIComponent(tenorQuery)}`); if (!response.ok) { setTenorResults([]); return; } const data = await response.json() as { results?: Array<{ url: string }> }; setTenorResults((data.results ?? []).map((item) => item.url)); }} className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white">Ara</button></div>
-              {tenorResults.length > 0 && <div className="grid grid-cols-2 gap-2">{tenorResults.map((url) => <button type="button" key={url} onClick={() => setGifUrl(url)} className={`overflow-hidden rounded-lg border-2 ${gifUrl === url ? 'border-violet-500' : 'border-transparent'}`}><img src={url} alt="Tenor GIF sonucu" className="h-20 w-full object-cover" /></button>)}</div>}
-              <input value={gifUrl} onChange={(e) => setGifUrl(e.target.value)} placeholder="GIF URL'si (veya Tenor sonucu)" type="url" className="rounded-lg border border-slate-200 px-3 py-2 text-xs" />
-              <div className="flex gap-2"><select value={musicProvider} onChange={(e) => setMusicProvider(e.target.value as typeof musicProvider)} className="rounded-lg border border-slate-200 px-2 text-xs"><option value="spotify">Spotify</option><option value="youtube_music">YouTube Music</option></select><input value={musicUrl} onChange={(e) => setMusicUrl(e.target.value)} placeholder="Müzik bağlantısı" type="url" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs" /></div>
-            </div>
 
           {/* Media preview */}
           {mediaType === 'photo' && imageUrl && (
@@ -270,7 +257,7 @@ export default function CreatePostScreen({ onPosted }: Props) {
               disabled={!content.trim() || busy || uploading}
               className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-medium text-sm rounded-xl shadow-sm hover:shadow-md disabled:opacity-40 transition-all ml-auto"
             >
-              <Send className="w-4 h-4" />
+              <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/u%C3%A7-ql405KGPMo2mmIYpBbXzHpbbgMAbA6.png" alt="" className="h-4 w-4 rounded-sm invert" />
               {busy ? 'Paylaşılıyor...' : success ? 'Paylaşıldı!' : 'Paylaş'}
             </button>
           </div>
