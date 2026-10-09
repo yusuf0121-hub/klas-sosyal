@@ -215,7 +215,7 @@ function MainApp() {
       );
     }
 
-    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} /></>;
+    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} onCreateClick={() => openOverlay('create')} /></>;
     if (tab === 'search') return <SearchScreen onProfileClick={openProfile} />;
     return (
       <ProfileScreen
