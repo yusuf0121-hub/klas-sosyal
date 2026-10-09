@@ -280,8 +280,8 @@ export default function PostCard({ post, onProfileClick, onPostDeleted }: Props)
 
       {post.video_url && (
         <div className="px-4 pb-3">
-          <div className={`rounded-xl overflow-hidden ${isDark ? 'neon-border-running' : ''}`}>
-            <video src={post.video_url} controls playsInline className="w-full object-cover max-h-96 bg-black" />
+          <div className={`overflow-hidden rounded-xl ${isDark ? 'neon-border-running' : ''}`}>
+            {(() => { const match = post.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/); return match ? <iframe src={`https://www.youtube.com/embed/${match[1]}`} title="YouTube video" className="aspect-video w-full bg-black" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : <video src={post.video_url} controls playsInline className="max-h-96 w-full bg-black object-cover" />; })()}
           </div>
         </div>
       )}
