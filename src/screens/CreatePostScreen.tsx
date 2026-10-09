@@ -257,7 +257,7 @@ export default function CreatePostScreen({ onPosted }: Props) {
               disabled={!content.trim() || busy || uploading}
               className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-medium text-sm rounded-xl shadow-sm hover:shadow-md disabled:opacity-40 transition-all ml-auto"
             >
-              <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/u%C3%A7-ql405KGPMo2mmIYpBbXzHpbbgMAbA6.png" alt="" className="h-4 w-4 rounded-sm invert" />
+              <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-5 w-5 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" />
               {busy ? 'Paylaşılıyor...' : success ? 'Paylaşıldı!' : 'Paylaş'}
             </button>
           </div>

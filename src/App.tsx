@@ -17,7 +17,7 @@ import PersonalAssistant from '@/components/PersonalAssistant';
 import BottomNav, { type Tab } from '@/components/BottomNav';
 import AppHeader from '@/components/AppHeader';
 import { ThemeProvider, useTheme } from '@/lib/ThemeProvider';
-import { Sparkles, Bell, X, Heart, MessageCircle, UserPlus, ArrowLeft, Share2 } from 'lucide-react';
+import { Sparkles, Bell, X, Heart, MessageCircle, UserPlus, ArrowLeft } from 'lucide-react';
 import type { Notification } from '@/lib/supabase';
 import { timeAgo } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
@@ -291,7 +291,7 @@ function MainApp() {
 
       {renderContent()}
 
-      {showChrome && tab === 'home' && !overlay && !viewingProfile && <button type="button" onClick={() => openOverlay('create')} className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 text-white shadow-xl shadow-sky-500/30 transition hover:scale-105" aria-label="Video veya reels paylaş"><Share2 className="h-6 w-6" /></button>}
+      {showChrome && tab === 'home' && !overlay && !viewingProfile && <button type="button" onClick={() => openOverlay('create')} className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 text-white shadow-xl shadow-sky-500/30 transition hover:scale-105" aria-label="Video veya reels paylaş"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-7 w-7 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></button>}
       {showChrome && <BottomNav active={tab} onChange={handleTabChange} />}
     </div>
   );
