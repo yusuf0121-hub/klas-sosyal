@@ -1,110 +1,153 @@
-# Klas Sosyal Uygulaması
+# Klas Sosyal
 
-Class Social App - Sınıf İçi Sosyal Platform
+Modern sosyal medya platformu - Bağlantı Kur, Paylaş, Etkileş
 
-Klas Sosyal, sınıf öğrencileri ve öğretmenleri için duyuru, mesajlaşma, paylaşım ve işbirliği sunan modern bir eğitim sosyal ağıdır.
+Klas Sosyal, kullanıcıların bağlantı kurabileceği, fotoğraf ve video paylaşabileceği, canlı sohbet edebileceği ve topluluklar oluşturabileceği gerçek zamanlı sosyal ağ uygulamasıdır.
 
-## Genel Bakış
+## 🌐 Genel Bakış
 
-Klas Sosyal, okullardaki sınıf içi iletişimi ve işbirliğini kolaylaştıran, öğrenciler ile öğretmenler arasında etkin bir paylaşım ortamı oluşturan bir platformdur. Sınıf duyuruları, ödevler, tartışmalar ve anında mesajlaşma özellikleriyle eğitim ortamını güçlendiriyoruz.
+Klas Sosyal, Instagram ve Facebook benzeri özellikleriyle modern bir sosyal medya deneyimi sunan açık kaynak platformudur. Kullanıcı profilleri, arkadaş ağları, paylaşım akışı, beğeniler, yorumlar, mesajlaşma ve trend konuları gibi sosyal medya platformlarının temel özelliklerini içerir.
 
-## Anahtar Kelimeler
+## ✨ Ana Özellikler
 
-- Sınıf sosyal platformu
-- Eğitim sosyal ağı
-- Okul iletişim uygulaması
-- Öğrenci işbirliği platformu
-- Sınıf yönetimi sistemi
-- Eğitim teknolojisi
-- EdTech platform
-- Sınıf topluluğu uygulaması
+- 📸 Fotoğraf ve video paylaşımı
+- 👥 Kullanıcı profilleri ve arkadaş bağlantıları
+- ❤️ Beğen, yorum ve paylaş sistemi
+- 💬 Gerçek zamanlı mesajlaşma
+- 🔔 Bildirim sistemi
+- 🌍 Keşfet ve trend konuları
+- 🔍 Arama ve hashtag desteği
+- 🎯 Takip ve takipçi sistemi
+- 🛡️ Gizlilik ve güvenlik ayarları
+- 📱 Mobil uyumlu tasarım
 
-## Özellikler
+## 🛠️ Teknoloji Yığını
 
-- 📢 Sınıf duyuruları ve haber akışı
-- 👥 Öğrenci ve öğretmen profilleri
-- 💬 Mesajlaşma ve grup sohbeti
-- 📝 Paylaşım ve yorum sistemi
-- ✅ Ödev ve görev takibi
-- 🔔 Gerçek zamanlı bildirim sistemi
-- 🛡️ Rol bazlı kullanıcı yönetimi
-- 📱 Mobil uyumlu arayüz
-- 🔐 Veri güvenliği
+| Kategori | Teknoloji |
+|----------|-----------|
+| Frontend | TypeScript, React, Next.js, Tailwind CSS |
+| Backend | Node.js, PostgreSQL |
+| Database | PostgreSQL, Prisma ORM |
+| Hosting | Vercel |
+| Real-time | WebSockets |
+| Deployment | Docker (opsiyonel) |
 
-## Teknoloji Yığını
-
-- **Frontend**: TypeScript, React, Next.js, Tailwind CSS
-- **Backend**: Node.js, PostgreSQL
-- **ORM**: Prisma
-- **Hosting**: Vercel
-- **Tasarım**: Modern ve responsive UI/UX
-
-## Proje Yapısı
+## 📁 Proje Yapısı
 
 ```
 src/
-  app/              # Next.js app router
-  components/       # React bileşenleri
-  lib/              # Yardımcı kütüphaneler
-  pages/            # API ve sayfa rotaları
-  services/         # Business logic
-  utils/            # Utility fonksiyonları
+├── app/              # Next.js app router
+├── components/       # React UI bileşenleri
+├── lib/              # Shared utilities & helpers
+├── pages/            # API endpoints
+├── services/         # Business logic
+├── hooks/            # Custom React hooks
+├── styles/           # Global styles
+└── utils/            # Helper functions
 ```
 
-## Başlangıç
+## 🚀 Hızlı Başlangıç
 
 ### Gereksinimler
-- Node.js 18+
-- PostgreSQL
-- npm veya yarn
+- Node.js 18 veya üzeri
+- PostgreSQL 13+
+- npm/yarn/pnpm
 
-### Kurulum
+### Yükleme
 
 ```bash
+# Repoyu klonla
+git clone https://github.com/yusuf0121-hub/klas-sosyal.git
+cd klas-sosyal
+
 # Bağımlılıkları yükle
 npm install
 
-# Ortam değişkenlerini ayarla
+# .env dosyasını oluştur
 cp .env.example .env.local
 
-# Veritabanını migrate et
-npm run db:migrate
+# Veritabanını ayarla
+npm run db:push
 
 # Geliştirme sunucusunu başlat
 npm run dev
 ```
 
-Uygulama `http://localhost:3000` adresinde açılacaktır.
+Tarayıcını `http://localhost:3000` adresine aç ve başla!
 
-## Ortam Değişkenleri
+## ⚙️ Ortam Yapılandırması
+
+`.env.local` dosyasında aşağıdaki değişkenleri ayarla:
 
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/klas-sosyal
+# Veritabanı
+DATABASE_URL=postgresql://user:password@localhost:5432/klas_sosyal
+
+# API
 NEXT_PUBLIC_API_URL=http://localhost:3000
-JWT_SECRET=your-secret-key-here
+
+# Kimlik Doğrulama
+JWT_SECRET=your-super-secret-key-here
+JWT_EXPIRY=7d
+
+# Dosya Yükleme
+NEXT_PUBLIC_UPLOAD_URL=http://localhost:3000/api/upload
+MAX_FILE_SIZE=5242880
+
+# Node Ortamı
 NODE_ENV=development
 ```
 
-## Katkıda Bulunma
+## 📝 Temel Kullanım
 
-Projeye katkı sağlamak için:
+### Kayıt ve Giriş
+```bash
+POST /api/auth/register
+POST /api/auth/login
+```
+
+### Profil
+```bash
+GET /api/user/profile
+PUT /api/user/profile
+GET /api/user/:userId
+```
+
+### Paylaşımlar
+```bash
+POST /api/posts
+GET /api/posts/feed
+GET /api/posts/:postId
+POST /api/posts/:postId/like
+POST /api/posts/:postId/comment
+```
+
+### Mesajlaşma
+```bash
+POST /api/messages
+GET /api/messages/:conversationId
+```
+
+## 🤝 Katkı Sağlama
+
+Katkılarınız hoşgeldiniz! Projeyi geliştirmeye yardımcı olmak için:
 
 1. Repository'yi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/AmazingFeature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add some AmazingFeature'`)
-4. Branch'e push edin (`git push origin feature/AmazingFeature`)
+2. Feature branch oluşturun (`git checkout -b feature/YeniOzellik`)
+3. Değişikliklerinizi commit edin (`git commit -m 'Add: YeniOzellik'`)
+4. Branch'e push edin (`git push origin feature/YeniOzellik`)
 5. Pull Request açın
 
-## Lisans
+## 📄 Lisans
 
-MIT Lisansı - Ayrıntılar için [LICENSE](LICENSE) dosyasını görün
+MIT License - Tüm detaylar için [LICENSE](LICENSE) dosyasına bakın
 
-## İletişim
+## 📞 İletişim & Destek
 
-**Yazar**: yusuf0121-hub  
-**GitHub**: [@yusuf0121-hub](https://github.com/yusuf0121-hub)  
-**Proje**: [klas-sosyal](https://github.com/yusuf0121-hub/klas-sosyal)
+- **Geliştirici**: [@yusuf0121-hub](https://github.com/yusuf0121-hub)
+- **GitHub Repository**: [klas-sosyal](https://github.com/yusuf0121-hub/klas-sosyal)
+- **İssue Tracker**: [Hata bildir veya özellik iste](https://github.com/yusuf0121-hub/klas-sosyal/issues)
 
 ---
 
-**Not**: Bu proje eğitim amaçlı bir sosyal medya platformudur. Tüm kişisel veriler gizli tutulmalı ve GDPR/yerel veri koruma yasalarına uyulmalıdır.
+**Klas Sosyal** - Açık kaynak, modern, güvenilir sosyal medya platformu 🚀
