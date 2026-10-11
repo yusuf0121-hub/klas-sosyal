@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { useBadgeChecker } from '@/hooks/useBadges';
@@ -51,6 +51,26 @@ function MainApp() {
   const [chatOpen, setChatOpen] = useState(false);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [recentNotifs, setRecentNotifs] = useState<Notification[]>([]);
+  const appHistoryReady = useRef(false);
+  const navigationState = useRef({ chatOpen, overlay, showNotifPanel, tab, viewingProfile });
+  navigationState.current = { chatOpen, overlay, showNotifPanel, tab, viewingProfile };
+
+  useEffect(() => {
+    if (appHistoryReady.current) return;
+    appHistoryReady.current = true;
+    window.history.pushState({ klasSosyal: true }, '', window.location.href);
+    const handleBackButton = () => {
+      const current = navigationState.current;
+      if (current.showNotifPanel) setShowNotifPanel(false);
+      else if (current.chatOpen) setChatOpen(false);
+      else if (current.overlay) setOverlay(null);
+      else if (current.viewingProfile) setViewingProfile(null);
+      else if (current.tab !== 'home') setTab('home');
+      window.history.pushState({ klasSosyal: true }, '', window.location.href);
+    };
+    window.addEventListener('popstate', handleBackButton);
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, []);
 
   useEffect(() => {
     if (user) checkAndAward();
