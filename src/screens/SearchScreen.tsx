@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search as SearchIcon, Users, Film, Video, FileText } from 'lucide-react';
+import { Search as SearchIcon, Users, Film, Video, FileText, TrendingUp, Hash } from 'lucide-react';
 import PostCard from '@/components/PostCard';
 import { supabase, type Profile, type Post } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -9,7 +9,7 @@ type Props = {
   onProfileClick: (userId: string) => void;
 };
 
-type SearchMode = 'users' | 'posts' | 'videos';
+type SearchMode = 'users' | 'posts' | 'videos' | 'trends';
 
 export default function SearchScreen({ onProfileClick }: Props) {
   const { user } = useAuth();
@@ -20,6 +20,7 @@ export default function SearchScreen({ onProfileClick }: Props) {
   const [videoResults, setVideoResults] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [suggested, setSuggested] = useState<Profile[]>([]);
+  const [trends, setTrends] = useState<Array<{ tag: string; count: number }>>([]);
 
   useEffect(() => {
     async function loadSuggested() {
@@ -32,6 +33,16 @@ export default function SearchScreen({ onProfileClick }: Props) {
     }
     loadSuggested();
   }, [user?.id]);
+
+  useEffect(() => {
+    async function loadTrends() {
+      const { data } = await supabase.from('posts').select('content').order('created_at', { ascending: false }).limit(200);
+      const counts = new Map<string, number>();
+      for (const post of data ?? []) for (const tag of post.content.match(/#[\p{L}\p{N}_]+/gu) ?? []) { const normalizedTag = tag.toLowerCase(); counts.set(normalizedTag, (counts.get(normalizedTag) ?? 0) + 1); }
+      setTrends([...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([tag, count]) => ({ tag, count })));
+    }
+    if (mode === 'trends') void loadTrends();
+  }, [mode]);
 
   useEffect(() => {
     const normalized = query.trim().toLowerCase();
@@ -94,6 +105,7 @@ export default function SearchScreen({ onProfileClick }: Props) {
           <FileText className="w-4 h-4" />
           Gönderiler
         </button>
+        <button onClick={() => { setMode('trends'); setQuery(''); }} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'trends' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}><TrendingUp className="h-4 w-4" /> Trendler</button>
         <button
           onClick={() => { setMode('videos'); setQuery(''); }}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -111,7 +123,7 @@ export default function SearchScreen({ onProfileClick }: Props) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={mode === 'users' ? 'Kullanıcı ara...' : mode === 'posts' ? 'Gönderilerde ara...' : 'Video ara...'}
+          placeholder={mode === 'users' ? 'Kullanıcı ara...' : mode === 'posts' ? 'Gönderilerde ara...' : mode === 'trends' ? 'Trend hashtag ara...' : 'Video ara...'}
           className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all shadow-sm"
         />
       </div>
@@ -157,6 +169,8 @@ export default function SearchScreen({ onProfileClick }: Props) {
             ))}
           </div>
         )
+      ) : mode === 'trends' ? (
+        <div className="grid gap-2">{trends.filter((trend) => !query.trim() || trend.tag.includes(query.trim().toLowerCase().replace(/^#/, ''))).map((trend, index) => <button type="button" key={trend.tag} onClick={() => { setMode('posts'); setQuery(trend.tag); }} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-sky-200"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sm font-bold text-sky-600">{index + 1}</span><Hash className="h-4 w-4 text-sky-500" /><span className="flex-1 font-semibold text-slate-700">{trend.tag}</span><span className="text-xs text-slate-400">{trend.count} gönderi</span></button>)}{trends.length === 0 && <p className="py-16 text-center text-sm text-slate-400">Henüz trend hashtag yok.</p>}</div>
       ) : mode === 'posts' ? (
         postResults.length === 0 ? <div className="py-16 text-center"><FileText className="mx-auto mb-3 h-12 w-12 text-slate-300" /><p className="text-sm text-slate-400">{query.trim() ? 'Gönderi bulunamadı.' : 'Gönderi aramak için yazmaya başla.'}</p></div> : <div className="space-y-3">{postResults.map((post) => <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />)}</div>
       ) : videoResults.length === 0 ? (
