@@ -11,6 +11,7 @@ import NotificationsScreen from '@/screens/NotificationsScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import AdminScreen from '@/screens/AdminScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
+import LocationMapScreen from '@/screens/LocationMapScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
 import GroupsScreen from '@/screens/GroupsScreen';
 import PersonalAssistant from '@/components/PersonalAssistant';
@@ -24,7 +25,7 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | 'location-map' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
@@ -35,6 +36,7 @@ const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   groups: 'Gruplar',
   admin: 'Yönetici Paneli',
   settings: 'Ayarlar',
+  'location-map': 'Konum Haritası',
 };
 
 function MainApp() {
@@ -220,7 +222,8 @@ function MainApp() {
           {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
           {overlay === 'groups' && <GroupsScreen onClose={closeOverlay} />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
-          {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} />}
+          {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} />}
+          {overlay === 'location-map' && <LocationMapScreen onBack={closeOverlay} />}
         </>
       );
     }
