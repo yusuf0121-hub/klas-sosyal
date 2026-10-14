@@ -1,21 +1,70 @@
 import { useEffect, useRef, useState } from 'react';
-import { Home as HomeIcon, Film, RefreshCw } from 'lucide-react';
+import { Home as HomeIcon, Film, RefreshCw, Heart, MessageCircle, Share2, Bookmark, Send, Plus } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth';
 import { useFeed, useReels } from '@/hooks/useFeed';
 import PostCard from '@/components/PostCard';
 import StoriesBar from '@/components/StoriesBar';
 import CommunityLeaderboard from '@/components/CommunityLeaderboard';
+import AccountSuggestions from '@/components/AccountSuggestions';
 
 type Props = {
   onProfileClick: (userId: string) => void;
+  onCreateClick?: () => void;
 };
 
 type FeedMode = 'all' | 'reels';
 
-export default function HomeScreen({ onProfileClick }: Props) {
+export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
+  const { user } = useAuth();
   const { posts, loading, error, reload } = useFeed();
   const { reels, loading: reelsLoading, loadingMore, hasMore, loadMore } = useReels();
   const [mode, setMode] = useState<FeedMode>('all');
   const reelsEndRef = useRef<HTMLDivElement>(null);
+  const speedTimer = useRef<number | null>(null);
+  const [localReels, setLocalReels] = useState(reels);
+  const [speedingReel, setSpeedingReel] = useState<string | null>(null);
+
+  function startReelSpeed(event: React.PointerEvent<HTMLElement>, reelId: string) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const isSide = event.clientX - bounds.left < 88 || bounds.right - event.clientX < 88;
+    if (!isSide) return;
+    const video = event.currentTarget.querySelector('video');
+    if (!video) return;
+    speedTimer.current = window.setTimeout(() => { video.playbackRate = 2; setSpeedingReel(reelId); }, 260);
+  }
+
+  function stopReelSpeed(event: React.PointerEvent<HTMLElement>) {
+    if (speedTimer.current) window.clearTimeout(speedTimer.current);
+    const video = event.currentTarget.querySelector('video');
+    if (video) video.playbackRate = 1;
+    setSpeedingReel(null);
+  }
+
+  function likeFromDoubleTap(reelId: string, liked: boolean) {
+    if (!liked) void toggleReelLike(reelId, false);
+  }
+  useEffect(() => setLocalReels(reels), [reels]);
+
+  async function toggleReelLike(reelId: string, liked: boolean) {
+    if (!user) return;
+    if (liked) await supabase.from('likes').delete().eq('post_id', reelId).eq('user_id', user.id);
+    else await supabase.from('likes').insert({ post_id: reelId, user_id: user.id });
+    setLocalReels((items) => items.map((item) => item.id === reelId ? { ...item, liked_by_me: !liked, like_count: Math.max(0, (item.like_count ?? 0) + (liked ? -1 : 1)) } : item));
+  }
+
+  async function saveReel(reelId: string, saved: boolean) {
+    if (!user) return;
+    if (saved) await supabase.from('saved_posts').delete().eq('post_id', reelId).eq('user_id', user.id);
+    else await supabase.from('saved_posts').insert({ post_id: reelId, user_id: user.id });
+    setLocalReels((items) => items.map((item) => item.id === reelId ? { ...item, saved_by_me: !saved } : item));
+  }
+
+  async function shareReel(reelId: string) {
+    if (navigator.share) await navigator.share({ title: 'Klas Sosyal Reels', url: `${window.location.origin}/?post=${reelId}` });
+    else await navigator.clipboard?.writeText(`${window.location.origin}/?post=${reelId}`);
+    if (user) await supabase.from('shares').insert({ post_id: reelId, user_id: user.id });
+  }
 
   useEffect(() => {
     if (mode !== 'reels' || !reelsEndRef.current) return;
@@ -25,8 +74,8 @@ export default function HomeScreen({ onProfileClick }: Props) {
   }, [loadMore, mode, reels.length]);
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 pb-24">
-      <div className="flex items-center justify-between mb-4">
+    <div className={mode === 'reels' ? 'fixed inset-0 z-30 overflow-hidden bg-black' : 'mx-auto max-w-xl px-4 py-6 pb-24'}>
+      <div className={mode === 'reels' ? 'absolute left-4 right-4 top-4 z-20' : 'mb-4 flex items-center justify-between'}>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Akış</h1>
           <p className="text-sm text-slate-400">Son gönderiler</p>
@@ -39,11 +88,13 @@ export default function HomeScreen({ onProfileClick }: Props) {
         </button>
       </div>
 
-      <StoriesBar onProfileClick={onProfileClick} />
-      <CommunityLeaderboard />
+      {mode === 'all' && <>      <StoriesBar onProfileClick={onProfileClick} />
+      <AccountSuggestions onProfileClick={onProfileClick} />
+      <button type="button" onClick={onCreateClick} className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-sky-200 hover:shadow-md"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md shadow-cyan-500/25"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-6 w-6 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></div><div><p className="text-sm font-semibold text-slate-700">Video veya reels paylaş</p><p className="text-xs text-slate-400">Fotoğraf, video, GIF veya müzik ekle</p></div><Send className="ml-auto h-4 w-4 text-slate-400" /></button>
+      <CommunityLeaderboard /></>}
     
       {/* Feed mode toggle */}
-      <div className="flex gap-2 p-1 bg-white border border-slate-100 rounded-xl mb-5 shadow-sm">
+      <div className={mode === 'reels' ? 'absolute left-1/2 top-4 z-30 flex -translate-x-1/2 gap-1 rounded-xl bg-black/50 p-1' : 'mb-5 flex gap-2 rounded-xl border border-slate-100 bg-white p-1 shadow-sm'}>
         <button
           onClick={() => setMode('all')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -80,31 +131,15 @@ export default function HomeScreen({ onProfileClick }: Props) {
             <p className="text-sm text-slate-400 mt-1">Video paylaşan ilk kişi sen ol!</p>
           </div>
         ) : (
-          <div className="space-y-4 snap-y snap-mandatory max-h-[calc(100vh-180px)] overflow-y-auto overscroll-contain rounded-2xl">
-            {reels.map((r) => (
-              <div key={r.id} className="bg-slate-900 rounded-2xl overflow-hidden shadow-lg snap-start">
-
-                <div className="flex items-center gap-3 p-3">
-                  <button onClick={() => onProfileClick(r.user_id)} className="shrink-0">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-emerald-400 flex items-center justify-center text-xs font-bold text-white`}>
-                      {r.profile?.display_name?.[0]?.toUpperCase() ?? '?'}
-                    </div>
-                  </button>
-                  <button onClick={() => onProfileClick(r.user_id)} className="font-semibold text-white text-sm hover:underline">
-                    {r.profile?.display_name}
-                  </button>
-                </div>
-                <video src={r.video_url ?? undefined} controls autoPlay loop playsInline className="w-full max-h-[500px] object-cover" />
-                <div className="p-3">
-                  {r.content && <p className="text-white text-sm mb-2 whitespace-pre-wrap break-words">{r.content}</p>}
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1 text-sm text-slate-300">
-                      <HomeIcon className="w-4 h-4" /> {r.like_count ?? 0}
-                    </span>
-                    <span className="text-sm text-slate-300">{r.comment_count ?? 0} yorum</span>
-                  </div>
-                </div>
-              </div>
+          <div className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black">
+            {localReels.map((r) => (
+              <article key={r.id} onDoubleClick={() => likeFromDoubleTap(r.id, Boolean(r.liked_by_me))} onPointerDown={(event) => startReelSpeed(event, r.id)} onPointerUp={stopReelSpeed} onPointerCancel={stopReelSpeed} onPointerLeave={stopReelSpeed} className="relative flex h-screen w-full snap-start flex-col justify-center overflow-hidden bg-slate-950 shadow-lg">
+                <div className="flex items-center gap-3 p-3"><button onClick={() => onProfileClick(r.user_id)} className="shrink-0"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-emerald-400 text-sm font-bold text-white">{r.profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div></button><div className="min-w-0"><button onClick={() => onProfileClick(r.user_id)} className="font-semibold text-white text-sm hover:underline">{r.profile?.display_name ?? 'Kullan��cı'}</button><p className="text-xs text-slate-400">Reels videosu</p></div></div>
+                {speedingReel === r.id && <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-5 py-3 text-lg font-bold text-white">2x hız</div>}
+                {(() => { const match = r.video_url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/); return match ? <iframe src={`https://www.youtube.com/embed/${match[1]}`} title="YouTube reels video" className="aspect-video w-full bg-black" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : <video src={r.video_url ?? undefined} controls autoPlay loop playsInline className="h-[70vh] w-full object-cover sm:h-[78vh]" />; })()}
+                <div className="flex items-center justify-between gap-2 border-t border-white/10 p-3"><div className="flex items-center gap-4"><button type="button" onClick={() => void toggleReelLike(r.id, Boolean(r.liked_by_me))} className={`flex items-center gap-1.5 text-sm ${r.liked_by_me ? 'text-rose-400' : 'text-slate-300'}`}><Heart className="h-5 w-5" fill={r.liked_by_me ? 'currentColor' : 'none'} /> {r.like_count ?? 0}</button><button type="button" className="flex items-center gap-1.5 text-sm text-slate-300"><MessageCircle className="h-5 w-5" /> {r.comment_count ?? 0}</button><button type="button" onClick={() => void shareReel(r.id)} className="text-slate-300" aria-label="Reels paylaş"><Share2 className="h-5 w-5" /></button></div><button type="button" onClick={() => void saveReel(r.id, Boolean(r.saved_by_me))} className={r.saved_by_me ? 'text-amber-400' : 'text-slate-300'} aria-label="Reels kaydet"><Bookmark className="h-5 w-5" fill={r.saved_by_me ? 'currentColor' : 'none'} /></button></div>
+                <div className="px-3 pb-4">{r.content && <p className="text-sm text-white whitespace-pre-wrap break-words">{r.content}</p>}<p className="mt-2 text-xs text-slate-400">{r.profile?.display_name ?? 'Kullanıcı'} tarafından paylaşıldı</p></div>
+              </article>
             ))}
             <div ref={reelsEndRef} className="h-12 flex items-center justify-center" aria-live="polite">
               {loadingMore && <span className="text-xs text-slate-400">Yeni reelsler yükleniyor...</span>}

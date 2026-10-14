@@ -24,6 +24,8 @@ export default function MessagesScreen({ onChatOpenChange }: Props) {
   useEffect(() => {
     if (!user) return;
     loadConversations();
+    const channel = supabase.channel(`user-conversations-${user.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => { void loadConversations(); }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
   }, [user]);
 
   async function loadConversations() {

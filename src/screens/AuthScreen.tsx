@@ -82,7 +82,9 @@ export default function AuthScreen() {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const { error: err } = await resetPassword(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    setEmail(normalizedEmail);
+    const { error: err } = await resetPassword(normalizedEmail);
     if (err) setError(err); else setResetSent(true);
     setBusy(false);
   }
@@ -185,9 +187,10 @@ export default function AuthScreen() {
               <div className="rounded-md border border-[#dfe1e5] bg-white px-5 py-6">
                 <Mail className="mx-auto mb-4 h-7 w-7 text-[#64748b]" aria-hidden="true" />
                 <p className="text-sm font-medium">E-posta gönderildi</p>
-                <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{email} adresine bir şifre sıfırlama bağlantısı gönderdik. E-postadaki bağlantıya dokunarak Klas Sosyal&apos;de yeni şifreni belirleyebilirsin.</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{email} adresine şifre yenileme bağlantısı gönderdik. E-postadaki bağlantıya dokunarak yeni şifreni belirleyebilirsin.</p>
               </div>
-              <button type="button" onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); }} className="mt-6 text-sm underline underline-offset-2">Giriş ekranına dön</button>
+              {error && <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-left text-sm text-rose-600">{error}</div>}
+              <button type="button" onClick={() => { setResetSent(false); setError(null); }} className="mt-5 w-full text-sm underline underline-offset-2">Farklı e-posta kullan</button><button type="button" onClick={() => { setForgotMode(false); setResetSent(false); setEmail(''); setError(null); }} className="mt-3 w-full text-sm underline underline-offset-2">Giriş ekranına dön</button>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-6">

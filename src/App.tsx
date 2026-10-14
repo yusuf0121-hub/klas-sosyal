@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { useBadgeChecker } from '@/hooks/useBadges';
@@ -10,6 +10,8 @@ import MessagesScreen from '@/screens/MessagesScreen';
 import NotificationsScreen from '@/screens/NotificationsScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import AdminScreen from '@/screens/AdminScreen';
+import SettingsScreen from '@/screens/SettingsScreen';
+import LocationMapScreen from '@/screens/LocationMapScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
 import GroupsScreen from '@/screens/GroupsScreen';
 import PersonalAssistant from '@/components/PersonalAssistant';
@@ -23,7 +25,7 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | 'location-map' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
@@ -33,6 +35,8 @@ const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   assistant: 'Klas AI',
   groups: 'Gruplar',
   admin: 'Yönetici Paneli',
+  settings: 'Ayarlar',
+  'location-map': 'Konum Haritası',
 };
 
 function MainApp() {
@@ -49,6 +53,26 @@ function MainApp() {
   const [chatOpen, setChatOpen] = useState(false);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [recentNotifs, setRecentNotifs] = useState<Notification[]>([]);
+  const appHistoryReady = useRef(false);
+  const navigationState = useRef({ chatOpen, overlay, showNotifPanel, tab, viewingProfile });
+  navigationState.current = { chatOpen, overlay, showNotifPanel, tab, viewingProfile };
+
+  useEffect(() => {
+    if (appHistoryReady.current) return;
+    appHistoryReady.current = true;
+    window.history.pushState({ klasSosyal: true }, '', window.location.href);
+    const handleBackButton = () => {
+      const current = navigationState.current;
+      if (current.showNotifPanel) setShowNotifPanel(false);
+      else if (current.chatOpen) setChatOpen(false);
+      else if (current.overlay) setOverlay(null);
+      else if (current.viewingProfile) setViewingProfile(null);
+      else if (current.tab !== 'home') setTab('home');
+      window.history.pushState({ klasSosyal: true }, '', window.location.href);
+    };
+    window.addEventListener('popstate', handleBackButton);
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, []);
 
   useEffect(() => {
     if (user) checkAndAward();
@@ -198,6 +222,8 @@ function MainApp() {
           {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
           {overlay === 'groups' && <GroupsScreen onClose={closeOverlay} />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
+          {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} />}
+          {overlay === 'location-map' && <LocationMapScreen onBack={closeOverlay} />}
         </>
       );
     }
@@ -212,7 +238,7 @@ function MainApp() {
       );
     }
 
-    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} /></>;
+    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} onCreateClick={() => openOverlay('create')} /></>;
     if (tab === 'search') return <SearchScreen onProfileClick={openProfile} />;
     return (
       <ProfileScreen
@@ -221,6 +247,7 @@ function MainApp() {
         onProfileClick={openProfile}
         isAdmin={profile?.is_admin ?? false}
         onAdminClick={() => openOverlay('admin')}
+        onSettingsClick={() => openOverlay('settings')}
       />
     );
   }
@@ -287,6 +314,7 @@ function MainApp() {
 
       {renderContent()}
 
+      {showChrome && tab === 'home' && !overlay && !viewingProfile && <button type="button" onClick={() => openOverlay('create')} className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 text-white shadow-xl shadow-sky-500/30 transition hover:scale-105" aria-label="Video veya reels paylaş"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-7 w-7 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></button>}
       {showChrome && <BottomNav active={tab} onChange={handleTabChange} />}
     </div>
   );
