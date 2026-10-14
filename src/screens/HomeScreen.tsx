@@ -6,6 +6,7 @@ import { useFeed, useReels } from '@/hooks/useFeed';
 import PostCard from '@/components/PostCard';
 import StoriesBar from '@/components/StoriesBar';
 import CommunityLeaderboard from '@/components/CommunityLeaderboard';
+import AccountSuggestions from '@/components/AccountSuggestions';
 
 type Props = {
   onProfileClick: (userId: string) => void;
@@ -87,7 +88,8 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
         </button>
       </div>
 
-      {mode === 'all' && <><StoriesBar onProfileClick={onProfileClick} />
+      {mode === 'all' && <>      <StoriesBar onProfileClick={onProfileClick} />
+      <AccountSuggestions onProfileClick={onProfileClick} />
       <button type="button" onClick={onCreateClick} className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-sky-200 hover:shadow-md"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md shadow-cyan-500/25"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-6 w-6 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></div><div><p className="text-sm font-semibold text-slate-700">Video veya reels paylaş</p><p className="text-xs text-slate-400">Fotoğraf, video, GIF veya müzik ekle</p></div><Send className="ml-auto h-4 w-4 text-slate-400" /></button>
       <CommunityLeaderboard /></>}
     
@@ -132,7 +134,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
           <div className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black">
             {localReels.map((r) => (
               <article key={r.id} onDoubleClick={() => likeFromDoubleTap(r.id, Boolean(r.liked_by_me))} onPointerDown={(event) => startReelSpeed(event, r.id)} onPointerUp={stopReelSpeed} onPointerCancel={stopReelSpeed} onPointerLeave={stopReelSpeed} className="relative flex h-screen w-full snap-start flex-col justify-center overflow-hidden bg-slate-950 shadow-lg">
-                <div className="flex items-center gap-3 p-3"><button onClick={() => onProfileClick(r.user_id)} className="shrink-0"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-emerald-400 text-sm font-bold text-white">{r.profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div></button><div className="min-w-0"><button onClick={() => onProfileClick(r.user_id)} className="font-semibold text-white text-sm hover:underline">{r.profile?.display_name ?? 'Kullanıcı'}</button><p className="text-xs text-slate-400">Reels videosu</p></div></div>
+                <div className="flex items-center gap-3 p-3"><button onClick={() => onProfileClick(r.user_id)} className="shrink-0"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-emerald-400 text-sm font-bold text-white">{r.profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div></button><div className="min-w-0"><button onClick={() => onProfileClick(r.user_id)} className="font-semibold text-white text-sm hover:underline">{r.profile?.display_name ?? 'Kullan��cı'}</button><p className="text-xs text-slate-400">Reels videosu</p></div></div>
                 {speedingReel === r.id && <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-5 py-3 text-lg font-bold text-white">2x hız</div>}
                 {(() => { const match = r.video_url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/); return match ? <iframe src={`https://www.youtube.com/embed/${match[1]}`} title="YouTube reels video" className="aspect-video w-full bg-black" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : <video src={r.video_url ?? undefined} controls autoPlay loop playsInline className="h-[70vh] w-full object-cover sm:h-[78vh]" />; })()}
                 <div className="flex items-center justify-between gap-2 border-t border-white/10 p-3"><div className="flex items-center gap-4"><button type="button" onClick={() => void toggleReelLike(r.id, Boolean(r.liked_by_me))} className={`flex items-center gap-1.5 text-sm ${r.liked_by_me ? 'text-rose-400' : 'text-slate-300'}`}><Heart className="h-5 w-5" fill={r.liked_by_me ? 'currentColor' : 'none'} /> {r.like_count ?? 0}</button><button type="button" className="flex items-center gap-1.5 text-sm text-slate-300"><MessageCircle className="h-5 w-5" /> {r.comment_count ?? 0}</button><button type="button" onClick={() => void shareReel(r.id)} className="text-slate-300" aria-label="Reels paylaş"><Share2 className="h-5 w-5" /></button></div><button type="button" onClick={() => void saveReel(r.id, Boolean(r.saved_by_me))} className={r.saved_by_me ? 'text-amber-400' : 'text-slate-300'} aria-label="Reels kaydet"><Bookmark className="h-5 w-5" fill={r.saved_by_me ? 'currentColor' : 'none'} /></button></div>
