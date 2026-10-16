@@ -109,7 +109,7 @@ export default function ChatView({ conversation, onBack }: Props) {
     setText('');
     const { data } = await supabase
       .from('messages')
-      .insert({ conversation_id: conversation.id, sender_id: user.id, content, scheduled_at: parsed.scheduled_at })
+      .insert({ conversation_id: conversation.id, sender_id: user.id, content, scheduled_at: parsed.scheduled_at, delivered_at: new Date().toISOString() })
       .select('*, profile:profiles!messages_sender_id_fkey(*)')
       .single();
     if (data) {
@@ -248,7 +248,7 @@ export default function ChatView({ conversation, onBack }: Props) {
                     )}
                     {m.content && <p>{m.content}</p>}
                   </div>
-                  <span className="text-[10px] text-slate-400 mt-0.5 px-1">{timeAgo(m.created_at)}</span>
+                  <span className="mt-0.5 flex items-center gap-1 px-1 text-[10px] text-slate-400">{timeAgo(m.created_at)} {mine && <span aria-label={m.delivered_at ? 'Teslim edildi' : 'Gönderildi'}>{m.delivered_at ? '✓✓' : '✓'}</span>}</span>
                 </div>
               </div>
             );
