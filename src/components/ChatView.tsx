@@ -22,6 +22,9 @@ export default function ChatView({ conversation, onBack }: Props) {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [scheduledFor, setScheduledFor] = useState('');
+  const [otherOnline, setOtherOnline] = useState(false);
+  const [otherTyping, setOtherTyping] = useState(false);
+  const typingTimer = useRef<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isGroup = conversation.type === 'group';
@@ -56,6 +59,8 @@ export default function ChatView({ conversation, onBack }: Props) {
 
     const channel = supabase
       .channel(`messages:${conversation.id}`)
+      .on('broadcast', { event: 'presence' }, ({ payload }) => setOtherOnline(Boolean(payload?.online)))
+      .on('broadcast', { event: 'typing' }, ({ payload }) => { setOtherTyping(Boolean(payload?.typing)); window.setTimeout(() => setOtherTyping(false), 2200); })
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation.id}` },
         (payload) => {
@@ -77,7 +82,8 @@ export default function ChatView({ conversation, onBack }: Props) {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    void channel.subscribe((status) => { if (status === 'SUBSCRIBED') void channel.send({ type: 'broadcast', event: 'presence', payload: { online: true } }); });
+    return () => { void channel.send({ type: 'broadcast', event: 'presence', payload: { online: false } }); void supabase.removeChannel(channel); };
   }, [conversation.id]);
 
   useEffect(() => {
@@ -195,9 +201,7 @@ export default function ChatView({ conversation, onBack }: Props) {
         )}
         <div className="flex-1 min-w-0">
           <h2 className="font-semibold text-slate-900 text-sm truncate">{displayName}</h2>
-          <p className="text-xs text-slate-400">
-            {isGroup ? `${otherMembers.length + 1} üye` : 'Özel sohbet'}
-          </p>
+          <p className="text-xs text-slate-400">{otherTyping ? 'yazıyor...' : isGroup ? `${otherMembers.length + 1} üye` : otherOnline ? 'çevrimiçi' : 'çevrimdışı'}</p>
         </div>
         <button
           onClick={() => setCallActive(true)}
@@ -270,7 +274,7 @@ export default function ChatView({ conversation, onBack }: Props) {
             onKeyDown={(event) => {
               if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) return;
             }}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => { setText(e.target.value); if (typingTimer.current) window.clearTimeout(typingTimer.current); const channel = supabase.channel(`messages:${conversation.id}`); void channel.send({ type: 'broadcast', event: 'typing', payload: { typing: true } }); typingTimer.current = window.setTimeout(() => { void channel.send({ type: 'broadcast', event: 'typing', payload: { typing: false } }); }, 1200); }}
             placeholder="Mesaj yaz... (ör. Merhaba =12:00=)"
             className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
           />

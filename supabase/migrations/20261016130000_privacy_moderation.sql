@@ -1,0 +1,10 @@
+create table if not exists public.user_blocks (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, target_user_id uuid not null references auth.users(id) on delete cascade, created_at timestamptz not null default now(), unique(user_id, target_user_id));
+create table if not exists public.user_mutes (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, target_user_id uuid not null references auth.users(id) on delete cascade, created_at timestamptz not null default now(), unique(user_id, target_user_id));
+create table if not exists public.reports (id uuid primary key default gen_random_uuid(), reporter_id uuid not null references auth.users(id) on delete cascade, post_id uuid references public.posts(id) on delete set null, target_user_id uuid references auth.users(id) on delete set null, reason text not null, status text not null default 'open', created_at timestamptz not null default now());
+alter table public.user_blocks enable row level security;
+alter table public.user_mutes enable row level security;
+alter table public.reports enable row level security;
+create policy "Users manage their blocks" on public.user_blocks for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "Users manage their mutes" on public.user_mutes for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "Users create reports" on public.reports for insert to authenticated with check ((select auth.uid()) = reporter_id);
+create policy "Users view own reports" on public.reports for select to authenticated using ((select auth.uid()) = reporter_id);
