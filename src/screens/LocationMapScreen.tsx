@@ -14,8 +14,14 @@ function MapReady({ locations }: { locations: LocationRow[] }) {
   const map = useMap();
   useEffect(() => {
     const refresh = () => {
-      map.invalidateSize({ pan: false });
-      if (locations.length) map.fitBounds(locations.map((location) => [location.latitude, location.longitude] as [number, number]), { padding: [32, 32], maxZoom: 12 });
+      try {
+        map.invalidateSize({ pan: false });
+        const points = locations.filter((location) => Number.isFinite(location.latitude) && Number.isFinite(location.longitude)).map((location) => [location.latitude, location.longitude] as [number, number]);
+        if (points.length === 1) map.setView(points[0], 12, { animate: false });
+        else if (points.length > 1) map.fitBounds(points, { padding: [32, 32], maxZoom: 12, animate: false });
+      } catch {
+        // Ignore transient map resize errors while the overlay is mounting.
+      }
     };
     const frame = requestAnimationFrame(refresh);
     const timer = window.setTimeout(refresh, 250);
@@ -39,7 +45,8 @@ export default function LocationMapScreen({ onBack }: { onBack: () => void }) {
     const visibleIds = [user.id, ...(following ?? []).map((row) => row.following_id)];
     const { data, error } = await supabase.from('user_locations').select('user_id, latitude, longitude, updated_at, profile:profiles!user_locations_user_id_fkey(display_name)').eq('share_location', true).in('user_id', visibleIds);
     if (error) setMessage('Konumlar yüklenemedi. Lütfen tekrar dene.');
-    setLocations((data ?? []) as unknown as LocationRow[]);
+    const safeLocations = (data ?? []).filter((location) => Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))).map((location) => ({ ...location, latitude: Number(location.latitude), longitude: Number(location.longitude) }));
+    setLocations(safeLocations as unknown as LocationRow[]);
   }
   useEffect(() => { void loadLocations(); }, [user]);
 
