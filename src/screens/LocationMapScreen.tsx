@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, LocateFixed, MapPin } from 'lucide-react';
@@ -10,24 +9,39 @@ type LocationRow = { user_id: string; latitude: number; longitude: number; updat
 
 const markerIcon = L.divIcon({ className: 'klas-location-marker', html: '<div style="width:28px;height:28px;border-radius:9999px;background:#06b6d4;border:3px solid white;box-shadow:0 3px 12px #0891b2aa"></div>', iconSize: [28, 28], iconAnchor: [14, 14] });
 
-function MapReady({ locations }: { locations: LocationRow[] }) {
-  const map = useMap();
+function LeafletMap({ locations }: { locations: LocationRow[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.LayerGroup | null>(null);
+
   useEffect(() => {
-    const refresh = () => {
-      try {
-        map.invalidateSize({ pan: false });
-        const points = locations.filter((location) => Number.isFinite(location.latitude) && Number.isFinite(location.longitude)).map((location) => [location.latitude, location.longitude] as [number, number]);
-        if (points.length === 1) map.setView(points[0], 12, { animate: false });
-        else if (points.length > 1) map.fitBounds(points, { padding: [32, 32], maxZoom: 12, animate: false });
-      } catch {
-        // Ignore transient map resize errors while the overlay is mounting.
-      }
-    };
-    const frame = requestAnimationFrame(refresh);
-    const timer = window.setTimeout(refresh, 250);
-    return () => { cancelAnimationFrame(frame); window.clearTimeout(timer); };
-  }, [locations, map]);
-  return null;
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, { center: [39, 35], zoom: 6, zoomControl: true, scrollWheelZoom: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    markersRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+    const frame = requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+    return () => { cancelAnimationFrame(frame); map.remove(); mapRef.current = null; markersRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const markers = markersRef.current;
+    if (!map || !markers) return;
+    markers.clearLayers();
+    const points: L.LatLngExpression[] = [];
+    for (const location of locations) {
+      if (!Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) continue;
+      const point: L.LatLngExpression = [location.latitude, location.longitude];
+      points.push(point);
+      L.marker(point, { icon: markerIcon }).bindPopup(`<strong>${(location.profile?.display_name ?? 'Kullanıcı').replace(/[<>&]/g, '')}</strong><br />Yaklaşık konum`).addTo(markers);
+    }
+    if (points.length === 1) map.setView(points[0], 12, { animate: false });
+    if (points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [32, 32], maxZoom: 12, animate: false });
+    requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+  }, [locations]);
+
+  return <div ref={containerRef} className="h-full w-full" aria-label="Takip edilen kişilerin konum haritası" />;
 }
 
 export default function LocationMapScreen({ onBack }: { onBack: () => void }) {
@@ -63,6 +77,5 @@ export default function LocationMapScreen({ onBack }: { onBack: () => void }) {
   }
   async function stopSharing() { if (!user) return; await supabase.from('user_locations').update({ share_location: false }).eq('user_id', user.id); setSharing(false); setLocations((items) => items.filter((item) => item.user_id !== user.id)); setMessage('Konum paylaşımı kapatıldı.'); }
 
-  const center: [number, number] = locations[0] ? [locations[0].latitude, locations[0].longitude] : [39.0, 35.0];
-  return <section className="min-h-screen bg-slate-50 px-4 py-4"><div className="mx-auto max-w-4xl"><div className="mb-4 flex items-center gap-3"><button onClick={onBack} className="rounded-xl bg-white p-2 shadow-sm" aria-label="Geri"><ArrowLeft className="h-5 w-5" /></button><div><h1 className="text-xl font-bold text-slate-800">Takip ettiklerin haritada</h1><p className="text-xs text-slate-500">Yalnızca konum paylaşımına izin veren kişiler görünür.</p></div></div><div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3"><button onClick={() => void updateLocation()} disabled={busy || sharing} className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><LocateFixed className="h-4 w-4" />{busy ? 'Konum alınıyor...' : sharing ? 'Konumun paylaşılıyor' : 'Konumumu paylaş'}</button>{sharing && <button onClick={() => void stopSharing()} className="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600">Paylaşımı kapat</button>}{message && <span className="text-xs text-slate-500">{message}</span>}</div><div className="relative z-0 h-[65vh] min-h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm"><MapContainer center={center} zoom={6} scrollWheelZoom className="!h-full !min-h-[420px] !w-full"><TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><MapReady locations={locations} />{locations.map((location) => <Marker key={location.user_id} position={[location.latitude, location.longitude]} icon={markerIcon}><Popup><strong>{location.profile?.display_name ?? 'Kullanıcı'}</strong><br />Yaklaşık konum</Popup></Marker>)}</MapContainer></div>{locations.length === 0 && <div className="mt-3 rounded-xl bg-white p-4 text-center text-sm text-slate-500"><MapPin className="mx-auto mb-2 h-5 w-5 text-cyan-500" />Henüz görünür konum yok.</div>}</div></section>;
+  return <section className="min-h-screen bg-slate-50 px-4 py-4"><div className="mx-auto max-w-4xl"><div className="mb-4 flex items-center gap-3"><button onClick={onBack} className="rounded-xl bg-white p-2 shadow-sm" aria-label="Geri"><ArrowLeft className="h-5 w-5" /></button><div><h1 className="text-xl font-bold text-slate-800">Takip ettiklerin haritada</h1><p className="text-xs text-slate-500">Yalnızca konum paylaşımına izin veren kişiler görünür.</p></div></div><div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3"><button onClick={() => void updateLocation()} disabled={busy || sharing} className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><LocateFixed className="h-4 w-4" />{busy ? 'Konum alınıyor...' : sharing ? 'Konumun paylaşılıyor' : 'Konumumu paylaş'}</button>{sharing && <button onClick={() => void stopSharing()} className="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600">Paylaşımı kapat</button>}{message && <span className="text-xs text-slate-500">{message}</span>}</div><div className="relative z-0 h-[65vh] min-h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm"><LeafletMap locations={locations} /></div>{locations.length === 0 && <div className="mt-3 rounded-xl bg-white p-4 text-center text-sm text-slate-500"><MapPin className="mx-auto mb-2 h-5 w-5 text-cyan-500" />Henüz görünür konum yok.</div>}</div></section>;
 }
