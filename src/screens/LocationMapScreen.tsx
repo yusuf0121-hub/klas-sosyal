@@ -59,12 +59,21 @@ export default function LocationMapScreen({ onBack }: { onBack: () => void }) {
     setSharing(Boolean(own?.share_location));
     const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', user.id);
     const visibleIds = [user.id, ...(following ?? []).map((row) => row.following_id)];
-    const { data, error } = await supabase.from('user_locations').select('user_id, latitude, longitude, updated_at, profile:profiles!user_locations_user_id_fkey(display_name)').eq('share_location', true).or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).in('user_id', visibleIds);
+    let { data, error } = await supabase.from('user_locations').select('user_id, latitude, longitude, updated_at, expires_at, precision_meters, profile:profiles!user_locations_user_id_fkey(display_name)').eq('share_location', true).or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).in('user_id', visibleIds) as { data: any[] | null; error: { message: string } | null };
+    if (error) {
+      const fallback = await supabase.from('user_locations').select('user_id, latitude, longitude, updated_at, profile:profiles!user_locations_user_id_fkey(display_name)').eq('share_location', true).in('user_id', visibleIds);
+      data = fallback.data;
+      error = fallback.error;
+    }
     if (error) setMessage('Konumlar yüklenemedi. Lütfen tekrar dene.');
     const safeLocations = (data ?? []).filter((location) => Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))).map((location) => ({ ...location, latitude: Number(location.latitude), longitude: Number(location.longitude) }));
     setLocations(safeLocations as unknown as LocationRow[]);
   }
-  useEffect(() => { void loadLocations(); }, [user]);
+  useEffect(() => {
+    void loadLocations();
+    const timer = window.setInterval(() => void loadLocations(), 30000);
+    return () => window.clearInterval(timer);
+  }, [user]);
 
   async function updateLocation() {
     if (!user || !navigator.geolocation) return setMessage('Bu cihaz konum bilgisini desteklemiyor.');
@@ -73,8 +82,12 @@ export default function LocationMapScreen({ onBack }: { onBack: () => void }) {
       const latitude = Math.round(coords.latitude * 100) / 100;
       const longitude = Math.round(coords.longitude * 100) / 100;
       const expiresAt = new Date(Date.now() + Number(shareDuration) * 1000).toISOString();
-      const { error } = await supabase.from('user_locations').upsert({ user_id: user.id, latitude, longitude, share_location: true, precision_meters: Number(precision), expires_at: expiresAt, updated_at: new Date().toISOString() });
-      setBusy(false); setMessage(error ? 'Konum kaydedilemedi.' : 'Yaklaşık konumun takipçilerinle paylaşılıyor.');
+      let { error } = await supabase.from('user_locations').upsert({ user_id: user.id, latitude, longitude, share_location: true, precision_meters: Number(precision), expires_at: expiresAt, updated_at: new Date().toISOString() });
+      if (error) {
+        const fallback = await supabase.from('user_locations').upsert({ user_id: user.id, latitude, longitude, share_location: true, updated_at: new Date().toISOString() });
+        error = fallback.error;
+      }
+      setBusy(false); setMessage(error ? `Konum kaydedilemedi: ${error.message}` : 'Konumun takipçilerinle paylaşılıyor.');
       await loadLocations();
     }, () => { setBusy(false); setMessage('Konum izni verilmedi.'); }, { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 });
   }
