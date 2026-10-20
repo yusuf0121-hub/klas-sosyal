@@ -13,6 +13,7 @@ import AdminScreen from '@/screens/AdminScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import LocationMapScreen from '@/screens/LocationMapScreen';
 import ModerationScreen from '@/screens/ModerationScreen';
+import DiscoveryHubScreen from '@/screens/DiscoveryHubScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
 import GroupsScreen from '@/screens/GroupsScreen';
 import PersonalAssistant from '@/components/PersonalAssistant';
@@ -26,7 +27,7 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | 'location-map' | 'moderation' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | 'location-map' | 'moderation' | 'discover' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
@@ -39,6 +40,7 @@ const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   settings: 'Ayarlar',
   'location-map': 'Konum Haritası',
   moderation: 'Gizlilik ve Moderasyon',
+  discover: 'Keşfet Merkezi',
 };
 
 function MainApp() {
@@ -227,6 +229,7 @@ function MainApp() {
           {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} onModeration={() => openOverlay('moderation')} />}
           {overlay === 'location-map' && <LocationMapScreen onBack={closeOverlay} />}
           {overlay === 'moderation' && <ModerationScreen onClose={closeOverlay} />}
+          {overlay === 'discover' && <DiscoveryHubScreen onClose={closeOverlay} />}
         </>
       );
     }
@@ -266,6 +269,7 @@ function MainApp() {
           onTasksClick={() => (overlay === 'tasks' ? closeOverlay() : openOverlay('tasks'))}
           onAssistantClick={() => (overlay === 'assistant' ? closeOverlay() : openOverlay('assistant'))}
           onGroupsClick={() => (overlay === 'groups' ? closeOverlay() : openOverlay('groups'))}
+          onDiscoverClick={() => (overlay === 'discover' ? closeOverlay() : openOverlay('discover'))}
         />
       )}
 
