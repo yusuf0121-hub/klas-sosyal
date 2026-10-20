@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 
 type Props = { displayName?: string };
 type ChatMessage = { role: 'user' | 'assistant'; text: string };
+type Attachment = { name: string; type: string; text?: string; preview?: string; dataUrl?: string };
 
 function extractCode(text: string) {
   const match = text.match(/```(?:[\w+#.-]+)?\s*\n?([\s\S]*?)```/);
@@ -43,7 +44,7 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'assistant', text: `${displayName}, ben Klas AI. Ne üzerinde çalışmak istersin?` }]);
   const [input, setInput] = useState('');
-  const [attachment, setAttachment] = useState<{ name: string; type: string; text?: string; preview?: string } | null>(null);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -60,7 +61,8 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
     const isText = file.type.startsWith('text/') || /\.(md|json|csv|ts|tsx|js|jsx|py|java|cs|cpp|c|sql|php|go|rs|sh|yml|yaml|xml|html|css)$/i.test(file.name);
     const text = isText ? (await file.text()).slice(0, 20000) : undefined;
     const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
-    setAttachment({ name: file.name, type: file.type || 'application/octet-stream', text, preview });
+    const dataUrl = file.type.startsWith('image/') ? await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); }) : undefined;
+    setAttachment({ name: file.name, type: file.type || 'application/octet-stream', text, preview, dataUrl });
   }
 
   async function clearHistory() {
@@ -100,7 +102,7 @@ export default function PersonalAssistant({ displayName = 'arkadaşım' }: Props
     setAttachment(null);
     setIsSending(true);
     try {
-      const response = await fetch('/api/assistant', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: text || 'Bu dosyayı incele ve önemli noktalarını açıkla.', attachment: attachment ? { name: attachment.name, type: attachment.type, text: attachment.text } : null, history: messages.slice(-20) }) });
+      const response = await fetch('/api/assistant', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: text || (attachment?.dataUrl ? 'Bu resmi ayrıntılı olarak analiz et; gördüğün nesneleri, metinleri ve önemli bilgileri Türkçe açıkla.' : 'Bu dosyayı incele ve önemli noktalarını açıkla.'), attachment: attachment ? { name: attachment.name, type: attachment.type, text: attachment.text, dataUrl: attachment.dataUrl } : null, history: messages.slice(-20) }) });
       const data = await response.json() as { text?: string; error?: string; details?: string };
       if (!response.ok) throw new Error(data.error ?? 'Asistan yanıt veremedi');
       const assistantText = data.text?.trim() || reply;
