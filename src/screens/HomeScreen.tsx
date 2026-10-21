@@ -7,7 +7,6 @@ import PostCard from '@/components/PostCard';
 import StoriesBar from '@/components/StoriesBar';
 import CommunityLeaderboard from '@/components/CommunityLeaderboard';
 import AccountSuggestions from '@/components/AccountSuggestions';
-import YouTubeRecommendations from '@/components/YouTubeRecommendations';
 
 type Props = {
   onProfileClick: (userId: string) => void;
@@ -91,7 +90,6 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
 
       {mode === 'all' && <>      <StoriesBar onProfileClick={onProfileClick} />
       <AccountSuggestions onProfileClick={onProfileClick} />
-      <YouTubeRecommendations />
       <button type="button" onClick={onCreateClick} className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-sky-200 hover:shadow-md"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md shadow-cyan-500/25"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-6 w-6 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></div><div><p className="text-sm font-semibold text-slate-700">Video veya reels paylaş</p><p className="text-xs text-slate-400">Fotoğraf, video, GIF veya müzik ekle</p></div><Send className="ml-auto h-4 w-4 text-slate-400" /></button>
       <CommunityLeaderboard /></>}
     
