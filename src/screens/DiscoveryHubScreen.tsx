@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CalendarDays, Compass, Download, Globe2, Play, Sparkles, Users, Wand2 } from 'lucide-react';
-import { useReels } from '@/hooks/useFeed';
+import YouTubeReelsFeed from '@/components/YouTubeReelsFeed';
 import { useTheme } from '@/lib/ThemeProvider';
 
 type Props = { onClose: () => void };
@@ -9,7 +9,6 @@ type Section = 'discover' | 'community' | 'events' | 'reels';
 
 export default function DiscoveryHubScreen({ onClose }: Props) {
   const [section, setSection] = useState<Section>('discover');
-  const { reels, loading } = useReels();
   const { cardBg, cardBorder, textColor, subtextColor } = useTheme();
   const cards = useMemo(() => [
     { id: 'community' as const, icon: Users, title: 'Topluluklar', text: 'İlgi alanlarına göre insanlarla tanış, gruplara katıl.' },
@@ -22,6 +21,6 @@ export default function DiscoveryHubScreen({ onClose }: Props) {
     {section === 'discover' && <div className="space-y-3">{cards.map(({ id, icon: Icon, title, text }) => <button key={id} type="button" onClick={() => setSection(id)} className="flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition hover:-translate-y-0.5" style={{ background: cardBg, borderColor: cardBorder }}><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-600"><Icon className="h-5 w-5" /></span><span><strong className="block" style={{ color: textColor }}>{title}</strong><span className="text-sm" style={{ color: subtextColor }}>{text}</span></span></button>)}<div className="rounded-2xl border p-4" style={{ background: cardBg, borderColor: cardBorder }}><div className="flex items-center gap-2 font-semibold" style={{ color: textColor }}><Sparkles className="h-4 w-4 text-violet-500" /> Uygulama araçları</div><div className="mt-3 grid grid-cols-2 gap-2 text-sm"><span className="rounded-xl bg-slate-100 p-3"><Wand2 className="mb-1 h-4 w-4 text-violet-500" />AI görsel analiz</span><span className="rounded-xl bg-slate-100 p-3"><Download className="mb-1 h-4 w-4 text-emerald-500" />PWA kurulumu</span><span className="rounded-xl bg-slate-100 p-3"><Globe2 className="mb-1 h-4 w-4 text-sky-500" />YouTube önerileri</span><span className="rounded-xl bg-slate-100 p-3"><Compass className="mb-1 h-4 w-4 text-amber-500" />Widget kartları</span></div></div></div>}
     {section === 'community' && <div className="rounded-2xl border p-5" style={{ background: cardBg, borderColor: cardBorder }}><h2 className="text-lg font-bold" style={{ color: textColor }}>Toplulukları keşfet</h2><p className="mt-1 text-sm" style={{ color: subtextColor }}>Teknoloji, oyun, müzik, spor ve şehir toplulukları yakında burada kişiselleştirilecek.</p><button type="button" className="mt-4 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white">Topluluk oluştur</button></div>}
     {section === 'events' && <div className="rounded-2xl border p-5" style={{ background: cardBg, borderColor: cardBorder }}><h2 className="text-lg font-bold" style={{ color: textColor }}>Yaklaşan etkinlikler</h2><p className="mt-1 text-sm" style={{ color: subtextColor }}>Konum izninle yakınındaki etkinlikleri güvenli şekilde gösterebiliriz.</p><button type="button" className="mt-4 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white">Etkinlik oluştur</button></div>}
-    {section === 'reels' && <div className="space-y-3">{loading ? <p className="text-sm" style={{ color: subtextColor }}>Reels yükleniyor...</p> : reels.slice(0, 6).map((reel) => <article key={reel.id} className="rounded-2xl border p-4" style={{ background: cardBg, borderColor: cardBorder }}><div className="flex items-center gap-2"><Play className="h-4 w-4 text-rose-500" /><strong style={{ color: textColor }}>{reel.content?.slice(0, 90) || 'Önerilen reels'}</strong></div></article>)}</div>}
+    {section === 'reels' && <YouTubeReelsFeed />}
   </section>;
 }
