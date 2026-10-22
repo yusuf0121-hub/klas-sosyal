@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Home as HomeIcon, Film, RefreshCw, Heart, MessageCircle, Share2, Bookmark, Send, Plus } from 'lucide-react';
+import { Home as HomeIcon, Film, Music2, RefreshCw, Heart, MessageCircle, Share2, Bookmark, Send, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useFeed, useReels } from '@/hooks/useFeed';
@@ -14,7 +14,7 @@ type Props = {
   onCreateClick?: () => void;
 };
 
-type FeedMode = 'all' | 'reels';
+type FeedMode = 'all' | 'reels' | 'music';
 
 export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
   const [speedingReel, setSpeedingReel] = useState<string | null>(null);
 
   const isReelsMode = () => mode === 'reels';
-  if (isReelsMode()) return <YouTubeReelsFeed mode="reels" onBack={() => setMode('all')} />;
+  const isMediaMode = () => mode !== 'all';
 
   function startReelSpeed(event: React.PointerEvent<HTMLElement>, reelId: string) {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -117,40 +117,17 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
           <Film className="w-4 h-4" />
           Reels
         </button>
+        <button
+          onClick={() => setMode('music')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'music' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          <Music2 className="w-4 h-4" />
+          Müzikler
+        </button>
       </div>
 
-      {isReelsMode() ? (
-        reelsLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-slate-900 rounded-2xl animate-pulse h-80" />
-            ))}
-          </div>
-        ) : reels.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 mb-4">
-              <Film className="w-8 h-8 text-slate-400" />
-            </div>
-            <h3 className="font-semibold text-slate-700">Henüz reels yok</h3>
-            <p className="text-sm text-slate-400 mt-1">Video paylaşan ilk kişi sen ol!</p>
-          </div>
-        ) : (
-          <div className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black">
-            {localReels.map((r) => (
-              <article key={r.id} onDoubleClick={() => likeFromDoubleTap(r.id, Boolean(r.liked_by_me))} onPointerDown={(event) => startReelSpeed(event, r.id)} onPointerUp={stopReelSpeed} onPointerCancel={stopReelSpeed} onPointerLeave={stopReelSpeed} className="relative flex h-screen w-full snap-start flex-col justify-center overflow-hidden bg-slate-950 shadow-lg">
-                <div className="flex items-center gap-3 p-3"><button onClick={() => onProfileClick(r.user_id)} className="shrink-0"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-emerald-400 text-sm font-bold text-white">{r.profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div></button><div className="min-w-0"><button onClick={() => onProfileClick(r.user_id)} className="font-semibold text-white text-sm hover:underline">{r.profile?.display_name ?? 'Kullan��cı'}</button><p className="text-xs text-slate-400">Reels videosu</p></div></div>
-                {speedingReel === r.id && <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-5 py-3 text-lg font-bold text-white">2x hız</div>}
-                {(() => { const match = r.video_url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/); return match ? <iframe src={`https://www.youtube.com/embed/${match[1]}`} title="YouTube reels video" className="aspect-video w-full bg-black" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : <video src={r.video_url ?? undefined} controls autoPlay loop playsInline className="h-[70vh] w-full object-cover sm:h-[78vh]" />; })()}
-                <div className="flex items-center justify-between gap-2 border-t border-white/10 p-3"><div className="flex items-center gap-4"><button type="button" onClick={() => void toggleReelLike(r.id, Boolean(r.liked_by_me))} className={`flex items-center gap-1.5 text-sm ${r.liked_by_me ? 'text-rose-400' : 'text-slate-300'}`}><Heart className="h-5 w-5" fill={r.liked_by_me ? 'currentColor' : 'none'} /> {r.like_count ?? 0}</button><button type="button" className="flex items-center gap-1.5 text-sm text-slate-300"><MessageCircle className="h-5 w-5" /> {r.comment_count ?? 0}</button><button type="button" onClick={() => void shareReel(r.id)} className="text-slate-300" aria-label="Reels paylaş"><Share2 className="h-5 w-5" /></button></div><button type="button" onClick={() => void saveReel(r.id, Boolean(r.saved_by_me))} className={r.saved_by_me ? 'text-amber-400' : 'text-slate-300'} aria-label="Reels kaydet"><Bookmark className="h-5 w-5" fill={r.saved_by_me ? 'currentColor' : 'none'} /></button></div>
-                <div className="px-3 pb-4">{r.content && <p className="text-sm text-white whitespace-pre-wrap break-words">{r.content}</p>}<p className="mt-2 text-xs text-slate-400">{r.profile?.display_name ?? 'Kullanıcı'} tarafından paylaşıldı</p></div>
-              </article>
-            ))}
-            <div ref={reelsEndRef} className="h-12 flex items-center justify-center" aria-live="polite">
-              {loadingMore && <span className="text-xs text-slate-400">Yeni reelsler yükleniyor...</span>}
-              {!hasMore && reels.length > 0 && <span className="text-xs text-slate-400">Şimdilik tüm reelsleri gördün.</span>}
-            </div>
-          </div>
-        )
+      {isMediaMode() ? (
+        <YouTubeReelsFeed mode={mode === 'music' ? 'music' : 'reels'} onBack={() => setMode('all')} />
       ) : loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (

@@ -269,7 +269,6 @@ function MainApp() {
           onTasksClick={() => (overlay === 'tasks' ? closeOverlay() : openOverlay('tasks'))}
           onAssistantClick={() => (overlay === 'assistant' ? closeOverlay() : openOverlay('assistant'))}
           onGroupsClick={() => (overlay === 'groups' ? closeOverlay() : openOverlay('groups'))}
-          onDiscoverClick={() => (overlay === 'discover' ? closeOverlay() : openOverlay('discover'))}
         />
       )}
 
