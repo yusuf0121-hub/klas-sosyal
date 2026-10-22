@@ -7,6 +7,7 @@ import PostCard from '@/components/PostCard';
 import StoriesBar from '@/components/StoriesBar';
 import CommunityLeaderboard from '@/components/CommunityLeaderboard';
 import AccountSuggestions from '@/components/AccountSuggestions';
+import YouTubeReelsFeed from '@/components/YouTubeReelsFeed';
 
 type Props = {
   onProfileClick: (userId: string) => void;
@@ -24,6 +25,9 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
   const speedTimer = useRef<number | null>(null);
   const [localReels, setLocalReels] = useState(reels);
   const [speedingReel, setSpeedingReel] = useState<string | null>(null);
+
+  const isReelsMode = () => mode === 'reels';
+  if (isReelsMode()) return <YouTubeReelsFeed mode="reels" onBack={() => setMode('all')} />;
 
   function startReelSpeed(event: React.PointerEvent<HTMLElement>, reelId: string) {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -74,8 +78,8 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
   }, [loadMore, mode, reels.length]);
 
   return (
-    <div className={mode === 'reels' ? 'fixed inset-0 z-30 overflow-hidden bg-black' : 'mx-auto max-w-xl px-4 py-6 pb-24'}>
-      <div className={mode === 'reels' ? 'absolute left-4 right-4 top-4 z-20' : 'mb-4 flex items-center justify-between'}>
+    <div className={isReelsMode() ? 'fixed inset-0 z-30 overflow-hidden bg-black' : 'mx-auto max-w-xl px-4 py-6 pb-24'}>
+      <div className={isReelsMode() ? 'absolute left-4 right-4 top-4 z-20' : 'mb-4 flex items-center justify-between'}>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Akış</h1>
           <p className="text-sm text-slate-400">Son gönderiler</p>
@@ -94,7 +98,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
       <CommunityLeaderboard /></>}
     
       {/* Feed mode toggle */}
-      <div className={mode === 'reels' ? 'absolute left-1/2 top-4 z-30 flex -translate-x-1/2 gap-1 rounded-xl bg-black/50 p-1' : 'mb-5 flex gap-2 rounded-xl border border-slate-100 bg-white p-1 shadow-sm'}>
+      <div className={isReelsMode() ? 'absolute left-1/2 top-4 z-30 flex -translate-x-1/2 gap-1 rounded-xl bg-black/50 p-1' : 'mb-5 flex gap-2 rounded-xl border border-slate-100 bg-white p-1 shadow-sm'}>
         <button
           onClick={() => setMode('all')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -107,7 +111,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
         <button
           onClick={() => setMode('reels')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-            mode === 'reels' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
+            isReelsMode() ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           <Film className="w-4 h-4" />
@@ -115,7 +119,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
         </button>
       </div>
 
-      {mode === 'reels' ? (
+      {isReelsMode() ? (
         reelsLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
