@@ -97,37 +97,15 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
       <AccountSuggestions onProfileClick={onProfileClick} />
       <button type="button" onClick={onCreateClick} className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-sky-200 hover:shadow-md"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md shadow-cyan-500/25"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-6 w-6 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></div><div><p className="text-sm font-semibold text-slate-700">Video veya reels paylaş</p><p className="text-xs text-slate-400">Fotoğraf, video, GIF veya müzik ekle</p></div><Send className="ml-auto h-4 w-4 text-slate-400" /></button>
       <CommunityLeaderboard />
+      <div className="mb-5 flex gap-2 rounded-xl border border-slate-100 bg-white p-1 shadow-sm">
+        <button type="button" onClick={() => setMode('all')} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}><HomeIcon className="w-4 h-4" />Tümü</button>
+        <button type="button" onClick={() => setMode('reels')} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700"><Film className="w-4 h-4" />Reels</button>
+        <button type="button" onClick={() => setMode('music')} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700"><Music2 className="w-4 h-4" />Müzikler</button>
+      </div>
       <YouTubeReelsFeed mode="feed" searchQuery={feedSearch} />
       </>}
-    
-      {/* Feed mode toggle */}
-      <div className={isReelsMode() ? 'absolute left-1/2 top-4 z-30 flex -translate-x-1/2 gap-1 rounded-xl bg-black/50 p-1' : 'mb-5 flex gap-2 rounded-xl border border-slate-100 bg-white p-1 shadow-sm'}>
-        <button
-          onClick={() => setMode('all')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-            mode === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <HomeIcon className="w-4 h-4" />
-          Tümü
-        </button>
-        <button
-          onClick={() => setMode('reels')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-            isReelsMode() ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Film className="w-4 h-4" />
-          Reels
-        </button>
-        <button
-          onClick={() => setMode('music')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'music' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}
-        >
-          <Music2 className="w-4 h-4" />
-          Müzikler
-        </button>
-      </div>
+
+
 
       {isMediaMode() ? (
         <YouTubeReelsFeed mode={mode === 'music' ? 'music' : 'reels'} onBack={() => setMode('all')} />
