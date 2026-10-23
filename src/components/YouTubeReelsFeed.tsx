@@ -25,7 +25,7 @@ export default function YouTubeReelsFeed({ mode = 'reels', onBack }: { mode?: 'r
     const page = reset ? 0 : pageRef.current;
     try {
       const interests = watchedTopics.length ? watchedTopics.join(' ') : 'Türkiye gündem teknoloji spor müzik bilim oyun haber';
-      const rotations = ['shorts', 'short video', 'reels', 'viral', 'keşfet'];
+      const rotations = mode === 'music' ? ['official music', 'song', 'live music', 'audio'] : ['shorts', 'short video', 'reels', 'viral', 'keşfet'];
       const response = await fetch(`/api/youtube?q=${encodeURIComponent(`${interests} ${rotations[page % rotations.length]} ${page + 1}`)}`);
       const data = await response.json(); const incoming = (data.results ?? []) as Video[];
       setVideos((current) => reset ? incoming : [...current, ...incoming.filter((item) => !current.some((old) => old.id === item.id))]);
