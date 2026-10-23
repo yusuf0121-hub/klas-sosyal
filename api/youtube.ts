@@ -7,7 +7,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const key = process.env.GCP_API_KEY;
   if (!key) return res.status(500).json({ error: 'YouTube API is not configured' });
 
-  const params = new URLSearchParams({ part: 'snippet', q: query, type: 'video', maxResults: '12', safeSearch: 'strict', key });
+  const category = typeof req.query.category === 'string' ? req.query.category : 'all';
+  const videoDuration = category === 'reels' ? 'short' : category === 'feed' ? 'medium' : undefined;
+  const params = new URLSearchParams({ part: 'snippet', q: query, type: 'video', maxResults: '50', safeSearch: 'strict', key });
+  if (videoDuration) params.set('videoDuration', videoDuration);
   const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
   const payload = await response.json() as { items?: Array<{ id?: { videoId?: string }; snippet?: { title?: string; description?: string; channelTitle?: string; thumbnails?: { medium?: { url?: string } } } }>; error?: { message?: string } };
   if (!response.ok) return res.status(response.status).json({ error: payload.error?.message ?? 'YouTube search failed' });
