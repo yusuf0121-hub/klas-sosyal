@@ -25,6 +25,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
   const speedTimer = useRef<number | null>(null);
   const [localReels, setLocalReels] = useState(reels);
   const [speedingReel, setSpeedingReel] = useState<string | null>(null);
+  const [feedSearch, setFeedSearch] = useState('');
 
   const isReelsMode = () => mode === 'reels';
   const isMediaMode = () => mode !== 'all';
@@ -92,11 +93,11 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
         </button>
       </div>
 
-      {mode === 'all' && <>      <StoriesBar onProfileClick={onProfileClick} />
+      {mode === 'all' && <><div className="mb-4 relative"><input value={feedSearch} onChange={(event) => setFeedSearch(event.target.value)} placeholder="Kullanıcı, video veya içerik ara..." className="w-full rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm shadow-sm outline-none focus:border-sky-300" aria-label="Ana akışta ara" /></div><StoriesBar onProfileClick={onProfileClick} />
       <AccountSuggestions onProfileClick={onProfileClick} />
       <button type="button" onClick={onCreateClick} className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-sky-200 hover:shadow-md"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md shadow-cyan-500/25"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OTzNTsYYiW0eTD6Pm4ME6sUB961RFi.png" alt="" className="h-6 w-6 rounded-full object-cover [filter:invert(1)] [mix-blend-mode:screen]" /></div><div><p className="text-sm font-semibold text-slate-700">Video veya reels paylaş</p><p className="text-xs text-slate-400">Fotoğraf, video, GIF veya müzik ekle</p></div><Send className="ml-auto h-4 w-4 text-slate-400" /></button>
       <CommunityLeaderboard />
-      <YouTubeReelsFeed mode="feed" />
+      <YouTubeReelsFeed mode="feed" searchQuery={feedSearch} />
       </>}
     
       {/* Feed mode toggle */}
@@ -162,7 +163,7 @@ export default function HomeScreen({ onProfileClick, onCreateClick }: Props) {
         </div>
       ) : (
         <div className="space-y-4">
-          {posts.map((p) => (
+          {posts.filter((p) => !feedSearch.trim() || `${p.content ?? ''} ${p.profile?.display_name ?? ''}`.toLocaleLowerCase('tr-TR').includes(feedSearch.toLocaleLowerCase('tr-TR'))).map((p) => (
             <PostCard key={p.id} post={p} onProfileClick={onProfileClick} onPostDeleted={reload} />
           ))}
         </div>
