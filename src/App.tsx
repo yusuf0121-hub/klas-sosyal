@@ -16,6 +16,8 @@ import ModerationScreen from '@/screens/ModerationScreen';
 import DiscoveryHubScreen from '@/screens/DiscoveryHubScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
 import GroupsScreen from '@/screens/GroupsScreen';
+import LiveRoomScreen from '@/screens/LiveRoomScreen';
+import CreatorStudioScreen from '@/screens/CreatorStudioScreen';
 import PersonalAssistant from '@/components/PersonalAssistant';
 import BottomNav, { type Tab } from '@/components/BottomNav';
 import AppHeader from '@/components/AppHeader';
@@ -27,7 +29,7 @@ import Avatar from '@/components/Avatar';
 import NotificationPermissionCard from '@/components/NotificationPermissionCard';
 
 /** Alt bardaki 3 sekmenin dışında kalan, tam ekran açılan alanlar. */
-type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | 'location-map' | 'moderation' | 'discover' | null;
+type Overlay = 'create' | 'messages' | 'notifications' | 'tasks' | 'assistant' | 'groups' | 'admin' | 'settings' | 'location-map' | 'moderation' | 'discover' | 'live' | 'studio' | null;
 
 const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   create: 'Yeni Gönderi',
@@ -41,6 +43,8 @@ const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
   'location-map': 'Konum Haritası',
   moderation: 'Gizlilik ve Moderasyon',
   discover: 'Keşfet Merkezi',
+  live: 'Canlı Yayın',
+  studio: 'İçerik Üretici Stüdyosu',
 };
 
 function MainApp() {
@@ -226,10 +230,12 @@ function MainApp() {
           {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
           {overlay === 'groups' && <GroupsScreen onClose={closeOverlay} />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
-          {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} onModeration={() => openOverlay('moderation')} />}
+          {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} onModeration={() => openOverlay('moderation')} onStudio={() => openOverlay('studio')} />}
           {overlay === 'location-map' && <LocationMapScreen onBack={closeOverlay} />}
           {overlay === 'moderation' && <ModerationScreen onClose={closeOverlay} />}
           {overlay === 'discover' && <DiscoveryHubScreen onClose={closeOverlay} />}
+          {overlay === 'live' && <LiveRoomScreen onClose={closeOverlay} />}
+          {overlay === 'studio' && <CreatorStudioScreen onClose={closeOverlay} />}
         </>
       );
     }
@@ -244,7 +250,7 @@ function MainApp() {
       );
     }
 
-    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} onCreateClick={() => openOverlay('create')} /></>;
+    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} onCreateClick={() => openOverlay('create')} onLiveClick={() => openOverlay('live')} /></>;
     if (tab === 'search') return <SearchScreen onProfileClick={openProfile} />;
     return (
       <ProfileScreen
