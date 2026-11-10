@@ -173,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 function translateError(msg: string): string {
+  if (msg.includes('Unsupported provider') || msg.includes('provider is not enabled') || msg.includes('sağlayıcı etkinleştirilmemiş')) return 'Google girişi Supabase’te etkin değil. Supabase → Authentication → Providers → Google bölümünden sağlayıcıyı açıp Client ID ve Client Secret bilgilerini kaydedin.';
   if (msg.includes('Invalid login credentials')) return 'E-posta veya şifre hatalı.';
   if (msg.includes('User already registered')) return 'Bu e-posta ile zaten bir hesap var.';
   if (msg.includes('Password should be at least')) return 'Şifre en az 6 karakter olmalı.';
