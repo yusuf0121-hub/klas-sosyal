@@ -233,7 +233,7 @@ function MainApp() {
           {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} onModeration={() => openOverlay('moderation')} onStudio={() => openOverlay('studio')} />}
           {overlay === 'location-map' && <LocationMapScreen onBack={closeOverlay} />}
           {overlay === 'moderation' && <ModerationScreen onClose={closeOverlay} />}
-          {overlay === 'discover' && <DiscoveryHubScreen onClose={closeOverlay} />}
+          {overlay === 'discover' && <DiscoveryHubScreen onClose={closeOverlay} onTasksClick={() => openOverlay('tasks')} />}
           {overlay === 'live' && <LiveRoomScreen onClose={closeOverlay} />}
           {overlay === 'studio' && <CreatorStudioScreen onClose={closeOverlay} />}
         </>
