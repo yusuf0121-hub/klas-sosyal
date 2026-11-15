@@ -96,6 +96,7 @@ export type DailyTask = {
   completed: boolean;
   reward_coins: number;
   task_date: string;
+  claimed_at?: string | null;
   created_at: string;
 };
 

@@ -81,6 +81,15 @@ export default function GamesScreen({ onProfileClick }: Props) {
     setLoading(false);
   }
 
+  async function startGame(game: Game) {
+    if (!user) return;
+    if (PLAYABLE_SLUGS.includes(game.slug) || (game.slug === 'custom' && game.html_content)) {
+      const { error: taskError } = await supabase.rpc('record_game_play');
+      if (taskError) setError('Oyun görevi ilerlemesi kaydedilemedi.');
+    }
+    setPlayingGame(game);
+  }
+
   async function buyGame(game: Game) {
     if (!user) return;
     setBuying(game.id);
@@ -268,7 +277,7 @@ export default function GamesScreen({ onProfileClick }: Props) {
                   canAfford={(profile?.coins ?? 0) >= game.price}
                   buying={buying === game.id}
                   onBuy={() => buyGame(game)}
-                  onPlay={() => setPlayingGame(game)}
+                  onPlay={() => void startGame(game)}
                 />
               ))}
             </div>
@@ -287,7 +296,7 @@ export default function GamesScreen({ onProfileClick }: Props) {
                     canAfford={true}
                     buying={false}
                     onBuy={() => {}}
-                    onPlay={() => setPlayingGame(game)}
+                    onPlay={() => void startGame(game)}
                     onDelete={() => deleteGame(game)}
                     creatorName={profile?.display_name}
                   />
@@ -335,7 +344,7 @@ export default function GamesScreen({ onProfileClick }: Props) {
                       canAfford={(profile?.coins ?? 0) >= game.price}
                       buying={buying === game.id}
                       onBuy={() => buyGame(game)}
-                      onPlay={() => setPlayingGame(game)}
+                      onPlay={() => void startGame(game)}
                       showCreator
                       creatorName={game.created_by ? creators[game.created_by]?.display_name : undefined}
                       creatorId={game.created_by ?? undefined}
