@@ -15,7 +15,7 @@ import LocationMapScreen from '@/screens/LocationMapScreen';
 import ModerationScreen from '@/screens/ModerationScreen';
 import DiscoveryHubScreen from '@/screens/DiscoveryHubScreen';
 import DailyTasksScreen from '@/screens/DailyTasksScreen';
-import GroupsScreen from '@/screens/GroupsScreen';
+import SocialHubScreen from '@/screens/SocialHubScreen';
 import LiveRoomScreen from '@/screens/LiveRoomScreen';
 import CreatorStudioScreen from '@/screens/CreatorStudioScreen';
 import PersonalAssistant from '@/components/PersonalAssistant';
@@ -228,7 +228,7 @@ function MainApp() {
           {overlay === 'notifications' && <NotificationsScreen onProfileClick={openProfile} />}
           {overlay === 'tasks' && <DailyTasksScreen onClose={closeOverlay} />}
           {overlay === 'assistant' && <PersonalAssistant displayName={profile?.display_name ?? undefined} />}
-          {overlay === 'groups' && <GroupsScreen onClose={closeOverlay} />}
+          {overlay === 'groups' && <SocialHubScreen />}
           {overlay === 'admin' && profile?.is_admin && <AdminScreen onBack={closeOverlay} />}
           {overlay === 'settings' && <SettingsScreen onClose={closeOverlay} onLocationMap={() => openOverlay('location-map')} onModeration={() => openOverlay('moderation')} onStudio={() => openOverlay('studio')} />}
           {overlay === 'location-map' && <LocationMapScreen onBack={closeOverlay} />}
