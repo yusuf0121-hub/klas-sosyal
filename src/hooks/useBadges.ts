@@ -20,6 +20,7 @@ type Stats = {
   profilesVisited: number;
   accountAgeDays: number;
   loginStreak: number;
+  invitesCount: number;
   hasAvatar: boolean;
   hasBio: boolean;
   hasBanner: boolean;
@@ -43,6 +44,7 @@ async function loadStats(userId: string): Promise<Stats> {
     { count: following },
     { count: groupsJoined },
     { count: groupsCreated },
+    { count: invitesCount },
   ] = await Promise.all([
     supabase.from('likes').select('*', { count: 'exact', head: true }).eq('user_id', userId),
     supabase.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId),
@@ -56,6 +58,7 @@ async function loadStats(userId: string): Promise<Stats> {
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId),
     supabase.from('conversation_members').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('conversation.type', 'group'),
     supabase.from('conversations').select('*', { count: 'exact', head: true }).eq('created_by', userId).eq('type', 'group'),
+    supabase.from('referral_invites').select('id', { count: 'exact', head: true }).eq('inviter_id', userId).not('invited_user_id', 'is', null),
   ]);
 
   // Likes received: sum of likes on my posts
@@ -96,6 +99,7 @@ async function loadStats(userId: string): Promise<Stats> {
     profilesVisited: 0,
     accountAgeDays,
     loginStreak: profile?.login_streak ?? 0,
+    invitesCount: invitesCount ?? 0,
     hasAvatar: !!profile?.avatar_url,
     hasBio: !!profile?.bio,
     hasBanner: !!profile?.banner_url,
@@ -120,6 +124,7 @@ const THRESHOLDS = {
   videosPosted: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000],
   followers: [10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
   following: [10, 50, 100, 250, 500, 1000, 2500, 5000, 7500, 999999],
+  invites: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 5000],
 };
 
 function buildRules(): BadgeRule[] {
@@ -169,8 +174,10 @@ function buildRules(): BadgeRule[] {
     rules.push({ id: 161 + i, check: (s) => i === 9 ? false : s.following >= threshold });
   });
 
-  // 171-180: Elçi (invites - not tracked)
-  for (let i = 171; i <= 180; i++) rules.push({ id: i, check: () => false });
+  // 171-180: Elçi
+  THRESHOLDS.invites.forEach((threshold, i) => {
+    rules.push({ id: 171 + i, check: (s) => s.invitesCount >= threshold });
+  });
 
   // 181-190: Toplulukçu
   rules.push({ id: 181, check: (s) => s.groupsJoined >= 1 });

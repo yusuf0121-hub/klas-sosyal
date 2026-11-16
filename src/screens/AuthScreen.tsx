@@ -18,6 +18,10 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
+  const [referralCode] = useState(() => {
+    const code = new URLSearchParams(window.location.search).get('ref') ?? '';
+    return /^KLS-[A-F0-9]{32}$/i.test(code) ? code.toUpperCase() : '';
+  });
 
   useEffect(() => {
     const activateRecovery = () => setRecoveryMode(true);
@@ -42,7 +46,7 @@ export default function AuthScreen() {
         setBusy(false);
         return;
       }
-      const { error: err, needsVerification } = await signUp(email, password, displayName.trim(), bio.trim() || undefined);
+      const { error: err, needsVerification } = await signUp(email, password, displayName.trim(), bio.trim() || undefined, referralCode || undefined);
       if (err) setError(err);
       else if (needsVerification) setOtpEmail(email);
     } else {
@@ -218,6 +222,7 @@ export default function AuthScreen() {
           <div><label htmlFor="email" className="mb-2 block text-sm font-medium">E-posta</label><input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@email.com" className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition placeholder:text-[#64748b] focus:border-[#18181b]" /></div>
           <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium">Şifre</label>{mode === 'login' && <button type="button" onClick={() => { setForgotMode(true); setError(null); }} className="text-sm text-black hover:underline">Şifreni mi unuttun?</button>}</div><input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="h-10 w-full rounded-md border border-[#dfe1e5] px-3 text-sm outline-none transition focus:border-[#18181b]" /></div>
           {mode === 'signup' && <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Short bio (optional)" rows={3} maxLength={160} className="w-full resize-none rounded-md border border-[#dfe1e5] px-3 py-2 text-sm outline-none placeholder:text-[#64748b] focus:border-[#18181b]" />}
+          {mode === 'signup' && referralCode && <p className="rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-800">Bir arkadaşının davetiyle katılıyorsun.</p>}
           {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</div>}
           <button type="submit" disabled={busy} className="h-10 w-full rounded-md bg-[#29292b] text-sm font-semibold text-white transition hover:bg-[#18181b] disabled:opacity-50">{busy ? 'Lütfen bekleyin...' : mode === 'signup' ? 'Hesap oluştur' : 'Giriş yap'}</button>
         </form>
