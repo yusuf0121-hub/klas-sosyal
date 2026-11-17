@@ -8,14 +8,15 @@ import MediaEditor from '@/components/MediaEditor';
 
 type Props = {
   onPosted: () => void;
+  initialContent?: string;
 };
 
 type MediaType = 'photo' | 'video' | 'none';
 type YouTubeResult = { id: string; title: string; channelTitle: string; thumbnail: string; url: string };
 
-export default function CreatePostScreen({ onPosted }: Props) {
+export default function CreatePostScreen({ onPosted, initialContent = '' }: Props) {
   const { profile, user } = useAuth();
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(initialContent);
   const [imageUrl, setImageUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [mediaType, setMediaType] = useState<MediaType>('none');

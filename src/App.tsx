@@ -55,6 +55,7 @@ function MainApp() {
 
   const [tab, setTab] = useState<Tab>('home');
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [createInitialContent, setCreateInitialContent] = useState('');
   const [viewingProfile, setViewingProfile] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -172,7 +173,13 @@ function MainApp() {
   const closeOverlay = useCallback(() => {
     setOverlay(null);
     setChatOpen(false);
+    setCreateInitialContent('');
   }, []);
+
+  const createWithPrompt = useCallback((prompt: string) => {
+    setCreateInitialContent(prompt);
+    openOverlay('create');
+  }, [openOverlay]);
 
   const handleTabChange = useCallback((next: Tab) => {
     setOverlay(null);
@@ -223,7 +230,7 @@ function MainApp() {
               <h1 className="text-xl font-bold" style={{ color: textColor }}>{OVERLAY_TITLES[overlay]}</h1>
             </div>
           )}
-          {overlay === 'create' && <CreatePostScreen onPosted={() => { closeOverlay(); setTab('home'); }} />}
+          {overlay === 'create' && <CreatePostScreen initialContent={createInitialContent} onPosted={() => { closeOverlay(); setTab('home'); }} />}
           {overlay === 'messages' && <MessagesScreen onChatOpenChange={setChatOpen} />}
           {overlay === 'notifications' && <NotificationsScreen onProfileClick={openProfile} />}
           {overlay === 'tasks' && <DailyTasksScreen onClose={closeOverlay} />}
@@ -250,7 +257,7 @@ function MainApp() {
       );
     }
 
-    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} onCreateClick={() => openOverlay('create')} onLiveClick={() => openOverlay('live')} /></>;
+    if (tab === 'home') return <><NotificationPermissionCard /><HomeScreen onProfileClick={openProfile} onCreateClick={() => openOverlay('create')} onCreateWithPrompt={createWithPrompt} onDiscoverClick={() => handleTabChange('search')} onLiveClick={() => openOverlay('live')} /></>;
     if (tab === 'search') return <SearchScreen onProfileClick={openProfile} />;
     return (
       <ProfileScreen

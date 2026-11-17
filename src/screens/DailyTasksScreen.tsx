@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CheckCircle2, Circle, Sprout, Sun } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Sun } from 'lucide-react';
 import { supabase, type DailyTask } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Coin } from '@/lib/customIcons';
@@ -113,12 +113,10 @@ export default function DailyTasksScreen({ onClose }: Props) {
         )}
 
         <section className="plant-task-widget mb-4" aria-label="Günlük görev serası">
-          <div className="plant-task-art" aria-hidden="true">
-            <Sprout className="h-8 w-8" strokeWidth={1.7} />
-          </div>
+          <div className="plant-task-art mochi-mascot" role="img" aria-label="Mochi, Klas Sosyal maskotu" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
-              <Sun className="h-3.5 w-3.5" aria-hidden="true" /> Günlük seran
+              <Sun className="h-3.5 w-3.5" aria-hidden="true" /> Mochi&apos;nin serası
             </div>
             <p className="mt-1 text-sm font-semibold text-emerald-950">{gardenMood}</p>
             <p className="mt-0.5 text-xs text-emerald-800/75">Her görev yeni bir filiz.</p>

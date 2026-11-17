@@ -7,7 +7,7 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName: string, bio?: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
+  signUp: (email: string, password: string, displayName: string, bio?: string, referralCode?: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signInWithFacebook: () => Promise<{ error: string | null }>;
@@ -54,6 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setSession(newSession);
       if (newSession?.user) {
+        const referralCode = newSession.user.user_metadata?.referral_code;
+        if (typeof referralCode === 'string' && /^KLS-[A-F0-9]{32}$/i.test(referralCode)) {
+          void supabase.rpc('accept_referral', { p_code: referralCode.toUpperCase() });
+        }
         (async () => {
           await loadProfile(newSession.user.id);
         })();
@@ -75,9 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
-  async function signUp(email: string, password: string, displayName: string, bio?: string) {
+  async function signUp(email: string, password: string, displayName: string, bio?: string, referralCode?: string) {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedName = displayName.trim();
+    const safeReferralCode = referralCode && /^KLS-[A-F0-9]{32}$/i.test(referralCode) ? referralCode.toUpperCase() : undefined;
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
@@ -85,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           display_name: normalizedName,
           bio: bio?.trim() || '',
+          ...(safeReferralCode ? { referral_code: safeReferralCode } : {}),
         },
       },
     });

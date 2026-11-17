@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Send, Phone, Video, Users, Image as ImageIcon, Film } from 'lucide-react';
+import { ArrowLeft, Send, Phone, Video, Users, Image as ImageIcon, Film, Loader2 } from 'lucide-react';
 import { supabase, type Conversation, type Message, type Profile } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { timeAgo } from '@/lib/utils';
@@ -17,11 +17,11 @@ export default function ChatView({ conversation, onBack }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const [callActive, setCallActive] = useState(false);
   const [otherMembers, setOtherMembers] = useState<Profile[]>([]);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [scheduledFor, setScheduledFor] = useState('');
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const typingTimer = useRef<number | null>(null);
@@ -102,23 +102,27 @@ export default function ChatView({ conversation, onBack }: Props) {
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!text.trim() || !user) return;
-    setSending(true);
+    if (!text.trim() || !user || sending) return;
     const parsed = parseSchedule(text);
-    const content = parsed.content;
-    setText('');
-    const { data } = await supabase
+    if (!parsed.content) return;
+
+    setSending(true);
+    setSendError('');
+    const { data, error } = await supabase
       .from('messages')
-      .insert({ conversation_id: conversation.id, sender_id: user.id, content, scheduled_at: parsed.scheduled_at, delivered_at: new Date().toISOString() })
+      .insert({ conversation_id: conversation.id, sender_id: user.id, content: parsed.content, scheduled_at: parsed.scheduled_at, delivered_at: new Date().toISOString() })
       .select('*, profile:profiles!messages_sender_id_fkey(*)')
       .single();
-    if (data) {
-      const newMsg = { ...data, profile: data.profile as unknown as Profile };
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === newMsg.id)) return prev;
-        return [...prev, newMsg];
-      });
+
+    if (error || !data) {
+      setSendError('Mesaj gönderilemedi. Lütfen tekrar deneyin.');
+      setSending(false);
+      return;
     }
+
+    const newMsg = { ...data, profile: data.profile as unknown as Profile };
+    setMessages((prev) => prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]);
+    setText('');
     setSending(false);
   }
 
@@ -271,8 +275,9 @@ export default function ChatView({ conversation, onBack }: Props) {
           <input
             type="text"
             value={text}
+            aria-label="Mesajınız"
             onKeyDown={(event) => {
-              if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) return;
+              if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault();
             }}
             onChange={(e) => { setText(e.target.value); if (typingTimer.current) window.clearTimeout(typingTimer.current); const channel = supabase.channel(`messages:${conversation.id}`); void channel.send({ type: 'broadcast', event: 'typing', payload: { typing: true } }); typingTimer.current = window.setTimeout(() => { void channel.send({ type: 'broadcast', event: 'typing', payload: { typing: false } }); }, 1200); }}
             placeholder="Mesaj yaz... (ör. Merhaba =12:00=)"
@@ -281,11 +286,15 @@ export default function ChatView({ conversation, onBack }: Props) {
           <button
             type="submit"
             disabled={!text.trim() || sending}
-            className="p-3 bg-gradient-to-br from-sky-500 to-emerald-500 text-white rounded-full hover:shadow-lg disabled:opacity-40 transition-all shrink-0"
+            aria-label={sending ? 'Gönderiliyor' : 'Mesajı gönder'}
+            title={sending ? 'Gönderiliyor' : 'Mesajı gönder'}
+            className="group inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 px-3.5 text-white shadow-md shadow-sky-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none shrink-0"
           >
-            <Send className="w-5 h-5" />
+            {sending ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+            <span className="hidden text-sm font-semibold sm:inline">{sending ? 'Gönderiliyor' : 'Gönder'}</span>
           </button>
         </form>
+        {sendError && <p role="alert" className="absolute bottom-16 left-1/2 -translate-x-1/2 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm">{sendError}</p>}
       </div>
 
       {uploading && (
